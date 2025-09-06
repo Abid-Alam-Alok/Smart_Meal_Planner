@@ -1,0 +1,33 @@
+{
+  "name": "smart-meal-planner",
+  "version": "1.0.0",
+  "description": "A comprehensive meal planning application",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend/Smarty && npm run dev",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend/Smarty && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "build:frontend": "cd frontend/Smarty && npm run build",
+    "start:backend": "cd backend && npm start"
+  },
+  "keywords": [
+    "meal-planner",
+    "nutrition",
+    "inventory",
+    "react",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
+  "author": "Smart Meal Planner Team",
+  "license": "MIT",
+  "workspaces": [
+    "backend",
+    "frontend/Smarty"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
