@@ -567,20 +567,121 @@ export const updateUserGoal = async (req, res) => {
 // @access  Private (for future implementation)
 export const getUserStats = async (req, res) => {
   try {
-    const stats = await User.getStats();
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ isActive: true });
     
-    res.status(200).json({
+    res.json({
       success: true,
       data: {
-        stats
+        totalUsers,
+        activeUsers,
+        inactiveUsers: totalUsers - activeUsers
       }
     });
-
   } catch (error) {
-    console.error('Get user stats error:', error);
+    console.error('Error fetching user stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Server error while fetching user statistics'
+    });
+  }
+};
+
+// @desc    Get user's recommended daily calories
+// @route   GET /api/users/recommended-calories
+// @access  Private
+export const getRecommendedCalories = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Calculate age from date of birth
+    const today = new Date();
+    const birthDate = new Date(user.dateOfBirth);
+    const age = today.getFullYear() - birthDate.getFullYear() - 
+      (today.getMonth() < birthDate.getMonth() || 
+       (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+
+    // Check if we have all required data
+    if (!user.weight || !user.height || !age || !user.gender) {
+      return res.status(400).json({
+        success: false,
+        message: 'Incomplete profile data. Please update your profile with weight, height, date of birth, and gender.'
+      });
+    }
+
+    // Calculate BMR using Harris-Benedict equation
+    let bmr;
+    if (user.gender === 'male') {
+      bmr = 88.362 + (13.397 * user.weight) + (4.799 * user.height) - (5.677 * age);
+    } else {
+      bmr = 447.593 + (9.247 * user.weight) + (3.098 * user.height) - (4.330 * age);
+    }
+
+    // Activity level multipliers
+    const activityMultipliers = {
+      'sedentary': 1.2,
+      'lightly-active': 1.375,
+      'moderately-active': 1.55,
+      'very-active': 1.725
+    };
+
+    const tdee = bmr * (activityMultipliers[user.activityLevel] || 1.2);
+
+    // Goal-based calorie adjustments
+    let goalCalories = tdee;
+    let goalMessage = '';
+
+    switch (user.primaryGoal) {
+      case 'lose-weight':
+        goalCalories = tdee - 500; // 500 calorie deficit for 1lb/week loss
+        goalMessage = 'To lose weight safely, aim for a 500-calorie deficit per day.';
+        break;
+      case 'gain-muscle':
+        goalCalories = tdee + 300; // 300 calorie surplus for muscle gain
+        goalMessage = 'To build muscle, maintain a moderate calorie surplus with adequate protein.';
+        break;
+      case 'maintain-fitness':
+        goalCalories = tdee;
+        goalMessage = 'To maintain your current weight, eat at your maintenance calories.';
+        break;
+      default:
+        goalCalories = tdee;
+        goalMessage = 'Maintain a balanced diet aligned with your activity level.';
+    }
+
+    res.json({
+      success: true,
+      data: {
+        bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        recommendedCalories: Math.round(goalCalories),
+        goalMessage,
+        calorieRange: {
+          min: Math.round(goalCalories - 100),
+          max: Math.round(goalCalories + 100)
+        },
+        userProfile: {
+          age,
+          weight: user.weight,
+          height: user.height,
+          gender: user.gender,
+          activityLevel: user.activityLevel,
+          primaryGoal: user.primaryGoal
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error calculating recommended calories:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while calculating recommended calories'
     });
   }
 };

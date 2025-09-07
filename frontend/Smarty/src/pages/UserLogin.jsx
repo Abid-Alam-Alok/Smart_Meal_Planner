@@ -134,7 +134,7 @@ const UserLogin = () => {
           <div className="form-actions">
             <button 
               type="submit" 
-              className="login-button"
+              className={`btn btn-primary btn-block ${isSubmitting ? 'btn-loading' : ''}`}
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Signing In...' : 'Sign In'}

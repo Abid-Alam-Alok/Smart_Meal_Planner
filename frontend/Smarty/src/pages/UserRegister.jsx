@@ -316,7 +316,7 @@ const UserRegister = () => {
           <div className="form-actions">
             <button 
               type="submit" 
-              className="register-button"
+              className={`btn btn-success btn-block ${isSubmitting ? 'btn-loading' : ''}`}
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Creating Account...' : 'Create Account'}

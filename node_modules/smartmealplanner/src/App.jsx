@@ -9,7 +9,10 @@ import AdminRecipeManager from './pages/AdminRecipeManager';
 import UserDashboard from './pages/UserDashboard';
 import PersonalInventory from './pages/PersonalInventory';
 import MealPlanning from './pages/MealPlanning';
+import NutritionTracker from './pages/NutritionTracker';
+import GoalTracking from './pages/GoalTracking';
 import './App.css';
+import './styles/buttons.css';
 
 const App = () => {
   return (
@@ -26,6 +29,8 @@ const App = () => {
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/inventory" element={<PersonalInventory />} />
           <Route path="/meal-planning" element={<MealPlanning />} />
+          <Route path="/nutrition-tracker" element={<NutritionTracker />} />
+          <Route path="/goal-tracking" element={<GoalTracking />} />
         </Routes>
       </div>
     </Router>

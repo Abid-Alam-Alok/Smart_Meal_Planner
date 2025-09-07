@@ -127,7 +127,7 @@ const AdminDashboard = () => {
             <p>Welcome back, {user?.name || 'Administrator'}</p>
           </div>
           <div className="header-right">
-            <button onClick={handleLogout} className="logout-button">
+            <button onClick={handleLogout} className="btn btn-danger">
               Logout
             </button>
           </div>
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
               <div className="action-card">
                 <h3>User Management</h3>
                 <p>View and manage user accounts</p>
-                <button className="action-button" disabled>
+                <button className="btn btn-light" disabled>
                   Coming Soon
                 </button>
               </div>
@@ -188,7 +188,7 @@ const AdminDashboard = () => {
                 <h3>Recipe Requests</h3>
                 <p>Review and approve user recipe submissions</p>
                 <button 
-                  className="action-button" 
+                  className="btn btn-warning" 
                   onClick={() => setShowRecipeModal(true)}
                   disabled={recipeRequests.length === 0}
                 >
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
                 <h3>Meal Planner</h3>
                 <p>Create and manage new recipes</p>
                 <button 
-                  className="action-button" 
+                  className="btn btn-primary" 
                   onClick={() => navigate('/admin-meal-planner')}
                 >
                   Create New Recipe
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
                 <h3>Recipe Management</h3>
                 <p>View, edit, and delete existing recipes</p>
                 <button 
-                  className="action-button" 
+                  className="btn btn-secondary" 
                   onClick={() => navigate('/admin-recipe-manager')}
                 >
                   Manage Recipes
@@ -274,7 +274,7 @@ const AdminDashboard = () => {
             <div className="modal-header">
               <h2>Recipe Requests ({recipeRequests.length})</h2>
               <button 
-                className="close-button"
+                className="btn btn-light btn-sm"
                 onClick={() => setShowRecipeModal(false)}
               >
                 ×
@@ -342,7 +342,7 @@ const AdminDashboard = () => {
                         
                         <div className="request-actions">
                           <button 
-                            className="approve-button"
+                            className={`btn btn-success ${actionLoading ? 'btn-loading' : ''}`}
                             onClick={() => {
                               const notes = prompt('Add admin notes (optional):');
                               handleRecipeAction(request._id, 'approve', notes || '');
@@ -352,7 +352,7 @@ const AdminDashboard = () => {
                             {actionLoading ? 'Processing...' : 'Approve'}
                           </button>
                           <button 
-                            className="reject-button"
+                            className={`btn btn-danger ${actionLoading ? 'btn-loading' : ''}`}
                             onClick={() => {
                               const reason = prompt('Rejection reason (required):');
                               if (reason) {

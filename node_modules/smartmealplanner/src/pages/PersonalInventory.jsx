@@ -217,7 +217,7 @@ const PersonalInventory = () => {
         <div className="header-content">
           <div className="header-left">
             <button 
-              className="back-button"
+              className="btn btn-secondary"
               onClick={() => window.location.href = '/dashboard'}
             >
               ← Back to Dashboard
@@ -226,7 +226,7 @@ const PersonalInventory = () => {
             <p>Manage your ingredients and track expiration dates</p>
           </div>
           <button 
-            className="add-ingredient-btn"
+            className="btn btn-primary"
             onClick={() => {
               resetForm();
               setEditingItem(null);
@@ -242,7 +242,7 @@ const PersonalInventory = () => {
         {error && (
           <div className="error-message">
             {error}
-            <button onClick={() => setError('')}>×</button>
+            <button className="btn btn-light btn-sm" onClick={() => setError('')}>×</button>
           </div>
         )}
 
@@ -378,7 +378,7 @@ const PersonalInventory = () => {
                 <div className="form-actions">
                   <button 
                     type="button" 
-                    className="cancel-btn"
+                    className="btn btn-light"
                     onClick={() => {
                       setShowAddForm(false);
                       setEditingItem(null);
@@ -387,7 +387,7 @@ const PersonalInventory = () => {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="save-btn">
+                  <button type="submit" className="btn btn-success">
                     {editingItem ? 'Update Ingredient' : 'Add Ingredient'}
                   </button>
                 </div>
@@ -403,7 +403,7 @@ const PersonalInventory = () => {
               <h3>Your inventory is empty</h3>
               <p>Start by adding your first ingredient to track your pantry items and expiration dates.</p>
               <button 
-                className="add-first-btn"
+                className="btn btn-primary btn-lg"
                 onClick={() => {
                   resetForm();
                   setShowAddForm(true);
@@ -420,14 +420,14 @@ const PersonalInventory = () => {
                     <h3>{ingredient.name}</h3>
                     <div className="ingredient-actions">
                       <button 
-                        className="edit-btn"
+                        className="btn btn-info btn-sm"
                         onClick={() => handleEdit(ingredient)}
                         title="Edit ingredient"
                       >
                         ✏️
                       </button>
                       <button 
-                        className="delete-btn"
+                        className="btn btn-danger btn-sm"
                         onClick={() => handleDelete(ingredient._id)}
                         title="Delete ingredient"
                       >

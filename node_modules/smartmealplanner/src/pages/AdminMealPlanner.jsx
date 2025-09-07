@@ -196,7 +196,7 @@ const AdminMealPlanner = () => {
   return (
     <div className="admin-meal-planner">
       <div className="meal-planner-header">
-        <button onClick={goBack} className="back-button">
+        <button onClick={goBack} className="btn btn-secondary">
           ← Back to Dashboard
         </button>
         <h1>Create New Recipe</h1>
@@ -394,14 +394,14 @@ const AdminMealPlanner = () => {
                 <button
                   type="button"
                   onClick={() => removeIngredient(index)}
-                  className="remove-button"
+                  className="btn btn-danger btn-sm"
                   disabled={recipeForm.ingredients.length === 1}
                 >
                   ×
                 </button>
               </div>
             ))}
-            <button type="button" onClick={addIngredient} className="add-button">
+            <button type="button" onClick={addIngredient} className="btn btn-success btn-sm">
               + Add Ingredient
             </button>
           </div>
@@ -424,23 +424,23 @@ const AdminMealPlanner = () => {
                 <button
                   type="button"
                   onClick={() => removeInstruction(index)}
-                  className="remove-button"
+                  className="btn btn-danger btn-sm"
                   disabled={recipeForm.instructions.length === 1}
                 >
                   ×
                 </button>
               </div>
             ))}
-            <button type="button" onClick={addInstruction} className="add-button">
+            <button type="button" onClick={addInstruction} className="btn btn-success btn-sm">
               + Add Instruction
             </button>
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={goBack} className="cancel-button">
+            <button type="button" onClick={goBack} className="btn btn-light">
               Cancel
             </button>
-            <button type="submit" disabled={loading} className="submit-button">
+            <button type="submit" disabled={loading} className={`btn btn-primary ${loading ? 'btn-loading' : ''}`}>
               {loading ? 'Creating Recipe...' : 'Create Recipe'}
             </button>
           </div>

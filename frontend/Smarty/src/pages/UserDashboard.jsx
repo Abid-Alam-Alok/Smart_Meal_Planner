@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileEdit from '../components/ProfileEdit';
 import GoalSelection from '../components/GoalSelection';
+import { buildApiUrl } from '../config/api';
 import './UserDashboard.css';
 
 const UserDashboard = () => {
@@ -41,7 +42,44 @@ const UserDashboard = () => {
     return bmiCategories[5];
   };
 
-  // Calculate daily calorie needs based on Harris-Benedict equation
+  // Fetch recommended calories from API
+  const fetchRecommendedCalories = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      const response = await fetch(buildApiUrl('/api/users/recommended-calories'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch recommended calories');
+        return null;
+      }
+
+      const data = await response.json();
+      const { recommendedCalories, calorieRange, goalMessage } = data.data;
+      
+      return {
+        bmr: Math.round(data.data.bmr || 0),
+        tdee: Math.round(data.data.tdee || 0),
+        goalCalories: Math.round(recommendedCalories),
+        goalMessage,
+        calorieRange: {
+          min: Math.round(calorieRange.min),
+          max: Math.round(calorieRange.max)
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching recommended calories:', error);
+      return null;
+    }
+  };
+
+  // Calculate daily calorie needs based on Harris-Benedict equation (fallback)
   const calculateCalories = (user) => {
     if (!user.weight || !user.height || !user.age || !user.gender) return null;
     
@@ -157,17 +195,34 @@ const UserDashboard = () => {
     // Calculate health metrics
     const bmi = calculateBMI(parsedUser.height, parsedUser.weight);
     const bmiCategory = getBMICategory(bmi);
-    const calories = calculateCalories(parsedUser);
     const recommendations = getGoalRecommendations(parsedUser.primaryGoal);
     
     setUser({ ...parsedUser, bmi });
-    setHealthMetrics({
-      bmi,
-      bmiCategory,
-      calories,
-      recommendations
+    
+    // Fetch recommended calories from API
+    fetchRecommendedCalories().then(calories => {
+      // Use API calories if available, otherwise fall back to local calculation
+      const finalCalories = calories || calculateCalories(parsedUser);
+      
+      setHealthMetrics({
+        bmi,
+        bmiCategory,
+        calories: finalCalories,
+        recommendations
+      });
+      setLoading(false);
+    }).catch(error => {
+      console.error('Error setting up health metrics:', error);
+      // Fallback to local calculation
+      const calories = calculateCalories(parsedUser);
+      setHealthMetrics({
+        bmi,
+        bmiCategory,
+        calories,
+        recommendations
+      });
+      setLoading(false);
     });
-    setLoading(false);
     
     // Fetch expiring items
     fetchExpiringItems();
@@ -184,15 +239,31 @@ const UserDashboard = () => {
     // Recalculate health metrics with updated data
     const bmi = calculateBMI(updatedUser.height, updatedUser.weight);
     const bmiCategory = getBMICategory(bmi);
-    const calories = calculateCalories(updatedUser);
     const recommendations = getGoalRecommendations(updatedUser.primaryGoal);
     
     setUser({ ...updatedUser, bmi });
-    setHealthMetrics({
-      bmi,
-      bmiCategory,
-      calories,
-      recommendations
+    
+    // Fetch updated recommended calories from API
+    fetchRecommendedCalories().then(calories => {
+      // Use API calories if available, otherwise fall back to local calculation
+      const finalCalories = calories || calculateCalories(updatedUser);
+      
+      setHealthMetrics({
+        bmi,
+        bmiCategory,
+        calories: finalCalories,
+        recommendations
+      });
+    }).catch(error => {
+      console.error('Error updating health metrics:', error);
+      // Fallback to local calculation
+      const calories = calculateCalories(updatedUser);
+      setHealthMetrics({
+        bmi,
+        bmiCategory,
+        calories,
+        recommendations
+      });
     });
   };
 
@@ -206,7 +277,7 @@ const UserDashboard = () => {
       const token = localStorage.getItem('token');
       if (!userData || !token) return;
       
-      const response = await fetch('http://localhost:5001/api/inventory/expiring-this-week', {
+      const response = await fetch(buildApiUrl('/api/inventory/expiring-this-week'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +315,7 @@ const UserDashboard = () => {
           <div className="header-right">
             <div className="notification-container">
               <button 
-                className="notification-button"
+                className="btn btn-info btn-icon"
                 onClick={() => setShowNotifications(!showNotifications)}
                 title="Items expiring this week"
               >
@@ -258,7 +329,7 @@ const UserDashboard = () => {
                   <div className="notification-header">
                     <h4>Items Expiring This Week</h4>
                     <button 
-                      className="close-notifications"
+                      className="btn btn-light btn-sm"
                       onClick={() => setShowNotifications(false)}
                     >
                       ×
@@ -292,7 +363,7 @@ const UserDashboard = () => {
                   </div>
                   <div className="notification-footer">
                     <button 
-                      className="view-inventory-button"
+                      className="btn btn-secondary btn-sm"
                       onClick={() => {
                         setShowNotifications(false);
                         navigate('/inventory');
@@ -304,7 +375,7 @@ const UserDashboard = () => {
                 </div>
               )}
             </div>
-            <button onClick={handleLogout} className="logout-button">
+            <button onClick={handleLogout} className="btn btn-danger">
               Logout
             </button>
           </div>
@@ -326,7 +397,7 @@ const UserDashboard = () => {
                     <p className="profile-email">{user?.email}</p>
                   </div>
                   <button 
-                    className="edit-profile-button"
+                    className="btn btn-secondary btn-sm"
                     onClick={() => setShowProfileEdit(true)}
                     title="Edit Profile"
                   >
@@ -504,7 +575,7 @@ const UserDashboard = () => {
                 <h3>Meal Planning</h3>
                 <p>Create personalized meal plans based on your goals and preferences</p>
                 <button 
-                  className="feature-button meal-planning-button" 
+                  className="btn btn-primary" 
                   onClick={() => navigate('/meal-planning')}
                 >
                   Browse Recipes
@@ -515,8 +586,11 @@ const UserDashboard = () => {
                 <div className="feature-icon">📊</div>
                 <h3>Nutrition Tracking</h3>
                 <p>Track your daily nutrition intake and monitor your progress</p>
-                <button className="feature-button" disabled>
-                  Coming Soon
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => navigate('/nutrition-tracker')}
+                >
+                  Track Nutrition
                 </button>
               </div>
               
@@ -534,7 +608,7 @@ const UserDashboard = () => {
                 <h3>Inventory</h3>
                 <p>Manage your personal ingredient inventory with expiration tracking</p>
                 <button 
-                  className="feature-button inventory-button" 
+                  className="btn btn-secondary" 
                   onClick={() => window.location.href = '/inventory'}
                 >
                   Manage Inventory
@@ -545,8 +619,11 @@ const UserDashboard = () => {
                 <div className="feature-icon">🎯</div>
                 <h3>Goal Tracking</h3>
                 <p>Monitor your fitness and nutrition goals with detailed analytics</p>
-                <button className="feature-button" disabled>
-                  Coming Soon
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => window.location.href = '/goal-tracking'}
+                >
+                  View Goals
                 </button>
               </div>
             </div>
@@ -561,7 +638,7 @@ const UserDashboard = () => {
                   <h4>Update Profile</h4>
                   <p>Modify your personal information and preferences</p>
                 </div>
-                <button className="action-button" disabled>
+                <button className="btn btn-info btn-sm" disabled>
                   Edit
                 </button>
               </div>
@@ -572,7 +649,7 @@ const UserDashboard = () => {
                   <h4>Settings</h4>
                   <p>Customize your app experience and notifications</p>
                 </div>
-                <button className="action-button" disabled>
+                <button className="btn btn-warning btn-sm" disabled>
                   Configure
                 </button>
               </div>
@@ -583,7 +660,7 @@ const UserDashboard = () => {
                   <h4>Mobile App</h4>
                   <p>Download our mobile app for on-the-go access</p>
                 </div>
-                <button className="action-button" disabled>
+                <button className="btn btn-success btn-sm" disabled>
                   Download
                 </button>
               </div>

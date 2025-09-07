@@ -7,7 +7,8 @@ import {
   loginUser,
   updateUserProfile,
   updateUserGoal,
-  getUserStats
+  getUserStats,
+  getRecommendedCalories
 } from '../controllers/userController.js';
 // import rateLimiter from '../middlewares/rateLimiter.js';
 
@@ -50,5 +51,10 @@ router.put('/profile', auth, updateUserProfile);
 // @route   PUT /api/users/update-goal
 // @access  Private
 router.put('/update-goal', auth, updateUserGoal);
+
+// @desc    Get recommended calories for user
+// @route   GET /api/users/recommended-calories
+// @access  Private
+router.get('/recommended-calories', auth, getRecommendedCalories);
 
 export default router;

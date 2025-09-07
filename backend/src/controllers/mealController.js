@@ -1,5 +1,6 @@
 import Meal from '../models/Meal.js';
 import TempMeal from '../models/TempMeal.js';
+import Inventory from '../models/Inventory.js';
 
 // @desc    Get all approved recipes
 // @route   GET /api/meals
@@ -60,6 +61,105 @@ export const getMeals = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching recipes'
+    });
+  }
+};
+
+// @desc    Search recipes based on user's inventory
+// @route   GET /api/meals/search-by-inventory
+// @access  Private
+export const searchRecipesByInventory = async (req, res) => {
+  try {
+    // Get user's inventory
+    const userInventory = await Inventory.find({ userId: req.user.id });
+    
+    if (!userInventory || userInventory.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No inventory items found. Please add ingredients to your inventory first.',
+        data: []
+      });
+    }
+
+    // Get all active recipes
+    const allRecipes = await Meal.find({ isActive: true });
+    
+    // Create a map of user's inventory for quick lookup
+    const inventoryMap = new Map();
+    userInventory.forEach(item => {
+      const key = item.name.toLowerCase().trim();
+      inventoryMap.set(key, {
+        quantity: item.quantity,
+        unit: item.unit,
+        category: item.category
+      });
+    });
+
+    // Filter and score recipes based on inventory match
+    const matchedRecipes = [];
+    
+    for (const recipe of allRecipes) {
+      let matchedIngredients = 0;
+      let totalIngredients = recipe.ingredients.length;
+      let missingIngredients = [];
+      let availableIngredients = [];
+      
+      for (const ingredient of recipe.ingredients) {
+        const ingredientName = ingredient.name.toLowerCase().trim();
+        
+        if (inventoryMap.has(ingredientName)) {
+          matchedIngredients++;
+          availableIngredients.push({
+            name: ingredient.name,
+            needed: `${ingredient.quantity} ${ingredient.unit}`,
+            available: true
+          });
+        } else {
+          missingIngredients.push({
+            name: ingredient.name,
+            needed: `${ingredient.quantity} ${ingredient.unit}`,
+            available: false
+          });
+        }
+      }
+      
+      // Calculate match percentage
+      const matchPercentage = (matchedIngredients / totalIngredients) * 100;
+      
+      // Only include recipes with at least 30% ingredient match
+      if (matchPercentage >= 30) {
+        matchedRecipes.push({
+          ...recipe.toObject(),
+          matchPercentage: Math.round(matchPercentage),
+          matchedIngredients,
+          totalIngredients,
+          missingIngredientsCount: missingIngredients.length,
+          missingIngredients,
+          availableIngredients,
+          inventoryMatch: {
+            matched: matchedIngredients,
+            total: totalIngredients,
+            percentage: Math.round(matchPercentage),
+            missing: missingIngredients.length
+          }
+        });
+      }
+    }
+    
+    // Sort by match percentage (highest first)
+    matchedRecipes.sort((a, b) => b.matchPercentage - a.matchPercentage);
+    
+    res.json({
+      success: true,
+      message: `Found ${matchedRecipes.length} recipes matching your inventory`,
+      data: matchedRecipes,
+      inventoryItemsCount: userInventory.length
+    });
+  } catch (error) {
+    console.error('Search recipes by inventory error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while searching recipes by inventory'
     });
   }
 };

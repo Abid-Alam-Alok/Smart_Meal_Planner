@@ -17,6 +17,7 @@ const AdminRecipeManager = () => {
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [consumingRecipe, setConsumingRecipe] = useState(null);
 
   const [editForm, setEditForm] = useState({
     name: '',
@@ -96,6 +97,50 @@ const AdminRecipeManager = () => {
       isActive: recipe.isActive
     });
     setShowEditModal(true);
+  };
+
+  const handleConsumeRecipe = async (recipe) => {
+    try {
+      setConsumingRecipe(recipe._id);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(buildApiUrl('/api/intake/meal'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: recipe.name,
+          calories: recipe.calories,
+          quantity: 1,
+          unit: 'serving',
+          mealType: 'snack',
+          recipeId: recipe._id,
+          ingredients: recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess(`${recipe.name} added to nutrition tracker!`);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(data.message || 'Failed to add recipe to nutrition tracker');
+        setTimeout(() => setError(''), 3000);
+      }
+    } catch (error) {
+      console.error('Consume recipe error:', error);
+      setError('Failed to add recipe to nutrition tracker');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setConsumingRecipe(null);
+    }
   };
 
   const handleUpdate = async (e) => {
@@ -291,6 +336,13 @@ const AdminRecipeManager = () => {
                 </span>
               </div>
               <div className="recipe-actions">
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleConsumeRecipe(recipe)}
+                  disabled={consumingRecipe === recipe._id}
+                >
+                  {consumingRecipe === recipe._id ? 'Adding...' : 'Consume'}
+                </button>
                 <button 
                   className="edit-btn"
                   onClick={() => handleEdit(recipe)}

@@ -221,8 +221,19 @@
 
 .recipe-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.recipe-actions .btn {
+  flex: 1;
+  min-width: 80px;
+}
+
+.recipe-actions .btn-sm {
+  padding: 8px 12px;
+  font-size: 12px;
 }
 
 .edit-btn, .delete-btn {

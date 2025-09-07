@@ -11,7 +11,8 @@ import {
   createRecipe,
   getAllRecipes,
   updateRecipe,
-  deleteRecipe
+  deleteRecipe,
+  searchRecipesByInventory
 } from '../controllers/mealController.js';
 
 const router = express.Router();
@@ -23,6 +24,11 @@ router.use(auth);
 // @route   GET /api/meals
 // @access  Private
 router.get('/', getMeals);
+
+// @desc    Search recipes by user inventory
+// @route   GET /api/meals/search-by-inventory
+// @access  Private
+router.get('/search-by-inventory', searchRecipesByInventory);
 
 // @desc    Get user's recipe requests
 // @route   GET /api/meals/my-requests

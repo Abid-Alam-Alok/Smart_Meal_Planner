@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buildApiUrl } from '../config/api.js';
 import './MealPlanning.css';
 
 const MealPlanning = () => {
@@ -17,6 +18,9 @@ const MealPlanning = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [user, setUser] = useState(null);
   const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [consumingRecipe, setConsumingRecipe] = useState(null);
+  const [inventorySearchActive, setInventorySearchActive] = useState(false);
+  const [inventoryRecipes, setInventoryRecipes] = useState([]);
   const [requestForm, setRequestForm] = useState({
     name: '',
     description: '',
@@ -125,6 +129,50 @@ const MealPlanning = () => {
     setDietTypeFilter('all');
     setMaxCalories('');
     setCurrentPage(1);
+    setInventorySearchActive(false);
+  };
+
+  // Search recipes by inventory
+  const searchByInventory = async () => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/meals/search-by-inventory', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRecipes(data.data);
+        setInventoryRecipes(data.data);
+        setInventorySearchActive(true);
+        setCurrentPage(1);
+        setTotalPages(1); // Inventory search doesn't use pagination
+        setError('');
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to search recipes by inventory');
+      }
+    } catch (error) {
+      console.error('Error searching by inventory:', error);
+      setError('Error searching recipes by inventory');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Show all recipes
+  const showAllRecipes = () => {
+    setInventorySearchActive(false);
+    setInventoryRecipes([]);
+    setCurrentPage(1);
+    fetchRecipes();
   };
 
   // Get difficulty badge color
@@ -255,6 +303,42 @@ const MealPlanning = () => {
     }
   };
 
+  const handleConsumeRecipe = async (recipe) => {
+    try {
+      setConsumingRecipe(recipe._id);
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/intake/meal'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: recipe.name,
+          calories: recipe.calories,
+          quantity: 1,
+          unit: 'serving',
+          mealType: 'lunch', // Default to lunch, user can change later
+          recipeId: recipe._id,
+          ingredients: recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add recipe to nutrition tracker');
+      }
+
+      alert(`"${recipe.name}" has been added to your nutrition tracker!\n\nCalories: ${recipe.calories}\nIngredients: ${recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')}`);
+    } catch (err) {
+      console.error('Error consuming recipe:', err);
+      alert(`Failed to add recipe to nutrition tracker: ${err.message}`);
+    } finally {
+      setConsumingRecipe(null);
+    }
+  };
+
   if (userLoading) {
     return (
       <div className="meal-planning-container">
@@ -273,7 +357,7 @@ const MealPlanning = () => {
         <div className="header-content">
           <div className="header-left">
             <button 
-              className="back-button"
+              className="btn btn-secondary"
               onClick={() => navigate('/dashboard')}
             >
               ← Back to Dashboard
@@ -283,13 +367,13 @@ const MealPlanning = () => {
           </div>
           <div className="header-right">
             <button 
-              className="request-recipe-button"
+              className="btn btn-success"
               onClick={() => setShowRequestForm(true)}
             >
               Request New Recipe
             </button>
             <span className="welcome-text">Welcome, {user?.name || 'User'}!</span>
-            <button className="logout-button" onClick={handleLogout}>
+            <button className="btn btn-danger" onClick={handleLogout}>
               Logout
             </button>
           </div>
@@ -307,7 +391,7 @@ const MealPlanning = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
             />
-            <button type="submit" className="search-button">
+            <button type="submit" className="btn btn-primary btn-sm">
               🔍
             </button>
           </div>
@@ -352,14 +436,28 @@ const MealPlanning = () => {
             max="2000"
           />
 
-          <button onClick={clearFilters} className="clear-filters-button">
+          <button onClick={clearFilters} className="btn btn-light">
             Clear Filters
           </button>
         </div>
 
         <div className="action-buttons">
           <button 
-            className="request-recipe-button"
+            className="btn btn-info"
+            onClick={searchByInventory}
+            disabled={loading}
+          >
+            🥘 Search by My Inventory
+          </button>
+          <button 
+            className="btn btn-secondary"
+            onClick={showAllRecipes}
+            disabled={loading}
+          >
+            📋 Show All Recipes
+          </button>
+          <button 
+            className="btn btn-success"
             onClick={() => setShowRequestForm(true)}
           >
             + Request New Recipe
@@ -428,12 +526,41 @@ const MealPlanning = () => {
                     </div>
                   </div>
 
+                  {/* Inventory Match Information */}
+                  {inventorySearchActive && recipe.inventoryMatch && (
+                    <div className="inventory-match-info">
+                      <div className="match-percentage">
+                        <span className="match-label">Inventory Match:</span>
+                        <span className={`match-value ${recipe.inventoryMatch.percentage >= 70 ? 'high-match' : recipe.inventoryMatch.percentage >= 50 ? 'medium-match' : 'low-match'}`}>
+                          {recipe.inventoryMatch.percentage}%
+                        </span>
+                      </div>
+                      <div className="ingredients-summary">
+                        <span className="available-count">
+                          ✅ {recipe.inventoryMatch.matched} available
+                        </span>
+                        {recipe.inventoryMatch.missing > 0 && (
+                          <span className="missing-count">
+                            🛒 {recipe.inventoryMatch.missing} needed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="recipe-actions">
                     <button 
-                      className="view-recipe-button"
+                      className="btn btn-primary"
                       onClick={() => setSelectedRecipe(recipe)}
                     >
                       View Recipe
+                    </button>
+                    <button 
+                      className="btn btn-success btn-sm"
+                      onClick={() => handleConsumeRecipe(recipe)}
+                      disabled={consumingRecipe === recipe._id}
+                    >
+                      {consumingRecipe === recipe._id ? 'Adding...' : 'Consume'}
                     </button>
                   </div>
                 </div>
@@ -448,7 +575,7 @@ const MealPlanning = () => {
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="pagination-button"
+              className="btn btn-secondary"
             >
               Previous
             </button>
@@ -460,7 +587,7 @@ const MealPlanning = () => {
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="pagination-button"
+              className="btn btn-secondary"
             >
               Next
             </button>
@@ -475,7 +602,7 @@ const MealPlanning = () => {
             <div className="modal-header">
               <h2>{selectedRecipe.name}</h2>
               <button 
-                className="close-button"
+                className="btn btn-light btn-sm"
                 onClick={() => setSelectedRecipe(null)}
               >
                 ×
@@ -523,14 +650,61 @@ const MealPlanning = () => {
                   </div>
                 )}
 
+                {/* Inventory Match Details in Modal */}
+                {inventorySearchActive && selectedRecipe.inventoryMatch && (
+                  <div className="modal-inventory-info">
+                    <h4>Inventory Analysis</h4>
+                    <div className="inventory-stats">
+                      <div className="inventory-stat">
+                        <span className="stat-icon">📊</span>
+                        <span className="stat-text">
+                          <strong>{selectedRecipe.inventoryMatch.percentage}%</strong> match with your inventory
+                        </span>
+                      </div>
+                      <div className="inventory-stat">
+                        <span className="stat-icon">✅</span>
+                        <span className="stat-text">
+                          <strong>{selectedRecipe.inventoryMatch.matched}</strong> ingredients available
+                        </span>
+                      </div>
+                      {selectedRecipe.inventoryMatch.missing > 0 && (
+                        <div className="inventory-stat missing">
+                          <span className="stat-icon">🛒</span>
+                          <span className="stat-text">
+                            <strong>{selectedRecipe.inventoryMatch.missing}</strong> ingredients needed
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="ingredients-section">
                   <h4>Ingredients</h4>
                   <ul className="ingredients-list">
-                    {selectedRecipe.ingredients.map((ingredient, index) => (
-                      <li key={index}>
-                        {ingredient.quantity} {ingredient.unit} {ingredient.name}
-                      </li>
-                    ))}
+                    {inventorySearchActive && selectedRecipe.availableIngredients && selectedRecipe.missingIngredients ? (
+                      // Show ingredients with availability status when from inventory search
+                      [...selectedRecipe.availableIngredients, ...selectedRecipe.missingIngredients].map((ingredient, index) => (
+                        <li key={index} className={`ingredient-item ${ingredient.available ? 'available' : 'missing'}`}>
+                          <span className="ingredient-status">
+                            {ingredient.available ? '✅' : '🛒'}
+                          </span>
+                          <span className="ingredient-text">
+                            {ingredient.needed} {ingredient.name}
+                          </span>
+                          {!ingredient.available && (
+                            <span className="need-to-buy">Need to buy</span>
+                          )}
+                        </li>
+                      ))
+                    ) : (
+                      // Show regular ingredients list
+                      selectedRecipe.ingredients.map((ingredient, index) => (
+                        <li key={index}>
+                          {ingredient.quantity} {ingredient.unit} {ingredient.name}
+                        </li>
+                      ))
+                    )}
                   </ul>
                 </div>
 
@@ -568,7 +742,7 @@ const MealPlanning = () => {
             <div className="modal-header">
               <h2>Request New Recipe</h2>
               <button 
-                className="close-button"
+                className="btn btn-light btn-sm"
                 onClick={() => setShowRequestForm(false)}
               >
                 ×
@@ -642,7 +816,7 @@ const MealPlanning = () => {
                       {requestForm.ingredients.length > 1 && (
                         <button
                           type="button"
-                          className="remove-button"
+                          className="btn btn-danger btn-sm"
                           onClick={() => removeArrayFieldItem('ingredients', index)}
                         >
                           ×
@@ -652,7 +826,7 @@ const MealPlanning = () => {
                   ))}
                   <button
                     type="button"
-                    className="add-button"
+                    className="btn btn-success btn-sm"
                     onClick={() => addArrayFieldItem('ingredients')}
                   >
                     + Add Ingredient
@@ -674,7 +848,7 @@ const MealPlanning = () => {
                       {requestForm.instructions.length > 1 && (
                         <button
                           type="button"
-                          className="remove-button"
+                          className="btn btn-danger btn-sm"
                           onClick={() => removeArrayFieldItem('instructions', index)}
                         >
                           ×
@@ -684,7 +858,7 @@ const MealPlanning = () => {
                   ))}
                   <button
                     type="button"
-                    className="add-button"
+                    className="btn btn-success btn-sm"
                     onClick={() => addArrayFieldItem('instructions')}
                   >
                     + Add Step
@@ -808,14 +982,14 @@ const MealPlanning = () => {
                 <div className="form-actions">
                   <button
                     type="button"
-                    className="cancel-button"
+                    className="btn btn-light"
                     onClick={() => setShowRequestForm(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="submit-button"
+                    className={`btn btn-primary ${submittingRequest ? 'btn-loading' : ''}`}
                     disabled={submittingRequest}
                   >
                     {submittingRequest ? 'Submitting...' : 'Submit Request'}
