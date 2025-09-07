@@ -18,6 +18,9 @@ const AdminRecipeManager = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [consumingRecipe, setConsumingRecipe] = useState(null);
+  const [showMealTypeModal, setShowMealTypeModal] = useState(false);
+  const [selectedRecipeForConsume, setSelectedRecipeForConsume] = useState(null);
+  const [selectedMealType, setSelectedMealType] = useState('lunch');
 
   const [editForm, setEditForm] = useState({
     name: '',
@@ -99,9 +102,14 @@ const AdminRecipeManager = () => {
     setShowEditModal(true);
   };
 
-  const handleConsumeRecipe = async (recipe) => {
+  const handleConsumeRecipe = (recipe) => {
+    setSelectedRecipeForConsume(recipe);
+    setShowMealTypeModal(true);
+  };
+
+  const confirmConsumeRecipe = async () => {
     try {
-      setConsumingRecipe(recipe._id);
+      setConsumingRecipe(selectedRecipeForConsume._id);
       const token = localStorage.getItem('token');
       if (!token) {
         navigate('/login');
@@ -115,21 +123,23 @@ const AdminRecipeManager = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: recipe.name,
-          calories: recipe.calories,
+          name: selectedRecipeForConsume.name,
+          calories: selectedRecipeForConsume.calories,
           quantity: 1,
           unit: 'serving',
-          mealType: 'snack',
-          recipeId: recipe._id,
-          ingredients: recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')
+          mealType: selectedMealType,
+          recipeId: selectedRecipeForConsume._id,
+          ingredients: selectedRecipeForConsume.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(`${recipe.name} added to nutrition tracker!`);
+        setSuccess(`${selectedRecipeForConsume.name} added to ${selectedMealType}!`);
         setTimeout(() => setSuccess(''), 3000);
+        setShowMealTypeModal(false);
+        setSelectedRecipeForConsume(null);
       } else {
         setError(data.message || 'Failed to add recipe to nutrition tracker');
         setTimeout(() => setError(''), 3000);
@@ -610,6 +620,59 @@ const AdminRecipeManager = () => {
                 className="delete-btn"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Meal Type Selection Modal */}
+      {showMealTypeModal && selectedRecipeForConsume && (
+        <div className="modal-overlay" onClick={() => setShowMealTypeModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Select Meal Type</h2>
+              <button 
+                className="btn btn-light btn-sm"
+                onClick={() => setShowMealTypeModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="recipe-info">
+                <h3>{selectedRecipeForConsume.name}</h3>
+                <p><strong>Calories:</strong> {selectedRecipeForConsume.calories}</p>
+              </div>
+              
+              <div className="meal-type-selection">
+                <label>Add to which meal?</label>
+                <select 
+                  value={selectedMealType}
+                  onChange={(e) => setSelectedMealType(e.target.value)}
+                  className="meal-type-select"
+                >
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowMealTypeModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-success"
+                onClick={confirmConsumeRecipe}
+                disabled={consumingRecipe === selectedRecipeForConsume._id}
+              >
+                {consumingRecipe === selectedRecipeForConsume._id ? 'Adding...' : 'Add to Nutrition Tracker'}
               </button>
             </div>
           </div>

@@ -315,7 +315,7 @@ const UserDashboard = () => {
           <div className="header-right">
             <div className="notification-container">
               <button 
-                className="btn btn-info btn-icon"
+                className="notification-button"
                 onClick={() => setShowNotifications(!showNotifications)}
                 title="Items expiring this week"
               >
@@ -594,14 +594,7 @@ const UserDashboard = () => {
                 </button>
               </div>
               
-              <div className="feature-card">
-                <div className="feature-icon">🛒</div>
-                <h3>Smart Shopping</h3>
-                <p>Generate shopping lists based on your meal plans</p>
-                <button className="feature-button" disabled>
-                  Coming Soon
-                </button>
-              </div>
+
               
               <div className="feature-card">
                 <div className="feature-icon">📦</div>
@@ -682,11 +675,7 @@ const UserDashboard = () => {
         </div>
       </main>
       
-      {/* Status indicator at bottom left */}
-      <div className="status-indicator">
-        <div className="status-dot"></div>
-        <span className="status-text">System Online</span>
-      </div>
+
       
       {showProfileEdit && (
         <ProfileEdit 

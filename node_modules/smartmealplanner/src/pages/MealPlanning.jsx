@@ -25,6 +25,7 @@ const MealPlanning = () => {
   const [selectedRecipeForConsume, setSelectedRecipeForConsume] = useState(null);
   const [userInventory, setUserInventory] = useState([]);
   const [consumeIngredients, setConsumeIngredients] = useState([]);
+  const [selectedMealType, setSelectedMealType] = useState('lunch');
   const [requestForm, setRequestForm] = useState({
     name: '',
     description: '',
@@ -399,7 +400,7 @@ const MealPlanning = () => {
         body: JSON.stringify({
           recipeName: selectedRecipeForConsume.name,
           recipeId: selectedRecipeForConsume._id,
-          mealType: 'lunch', // You could make this selectable in the UI
+          mealType: selectedMealType,
           totalCalories: selectedRecipeForConsume.calories,
           ingredients: ingredientsData,
           nutritionalInfo: {
@@ -1209,6 +1210,20 @@ const MealPlanning = () => {
                     <span className="stat-value">{consumeIngredients.filter(ing => ing.consumeQuantity > 0).length}</span>
                   </div>
                 </div>
+              </div>
+
+              <div className="meal-type-selection">
+                <h4>Add to Meal Type</h4>
+                <select 
+                  value={selectedMealType}
+                  onChange={(e) => setSelectedMealType(e.target.value)}
+                  className="meal-type-select"
+                >
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                </select>
               </div>
 
               <div className="modal-actions">

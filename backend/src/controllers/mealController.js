@@ -380,7 +380,7 @@ export const approveRecipeRequest = async (req, res) => {
     }
 
     // Create approved meal
-    const approvedMeal = new Meal({
+    const mealData = {
       name: tempMeal.name,
       description: tempMeal.description,
       calories: tempMeal.calories,
@@ -393,9 +393,15 @@ export const approveRecipeRequest = async (req, res) => {
       cookTime: tempMeal.cookTime,
       servings: tempMeal.servings,
       tags: tempMeal.tags,
-      createdBy: tempMeal.requestedBy,
-      approvedBy: req.user.id
-    });
+      createdBy: tempMeal.requestedBy
+    };
+    
+    // Only set approvedBy if user has a valid ObjectId (not admin)
+    if (req.user.id !== 'admin') {
+      mealData.approvedBy = req.user.id;
+    }
+    
+    const approvedMeal = new Meal(mealData);
     
     try {
       await approvedMeal.save();
@@ -409,7 +415,10 @@ export const approveRecipeRequest = async (req, res) => {
     
     // Update temp meal status
     tempMeal.status = 'approved';
-    tempMeal.reviewedBy = req.user.id;
+    // Only set reviewedBy if user has a valid ObjectId (not admin)
+    if (req.user.id !== 'admin') {
+      tempMeal.reviewedBy = req.user.id;
+    }
     tempMeal.adminNotes = adminNotes;
     await tempMeal.save();
     
@@ -470,7 +479,10 @@ export const rejectRecipeRequest = async (req, res) => {
     
     // Update temp meal status
     tempMeal.status = 'rejected';
-    tempMeal.reviewedBy = req.user.id;
+    // Only set reviewedBy if user has a valid ObjectId (not admin)
+    if (req.user.id !== 'admin') {
+      tempMeal.reviewedBy = req.user.id;
+    }
     tempMeal.rejectionReason = rejectionReason;
     tempMeal.adminNotes = adminNotes;
     await tempMeal.save();
