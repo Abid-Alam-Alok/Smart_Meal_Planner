@@ -469,6 +469,70 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// @desc    Update user goal
+// @route   PUT /api/users/update-goal
+// @access  Private
+router.put('/update-goal', auth, async (req, res) => {
+  try {
+    const { primaryGoal } = req.body;
+    const userId = req.user.id;
+
+    // Validate primaryGoal
+    if (!primaryGoal) {
+      return res.status(400).json({
+        success: false,
+        message: 'Primary goal is required'
+      });
+    }
+
+    const validGoals = ['lose-weight', 'gain-muscle', 'maintain-fitness'];
+    if (!validGoals.includes(primaryGoal)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid goal. Must be one of: lose-weight, gain-muscle, maintain-fitness'
+      });
+    }
+
+    // Update user goal
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: { primaryGoal } },
+      { new: true, runValidators: true }
+    ).select('-password -passwordResetToken -passwordResetExpires -emailVerificationToken');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Goal updated successfully',
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error('Goal update error:', error);
+
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error. Please try again later.'
+    });
+  }
+});
+
 // @desc    Get user statistics (for admin/analytics)
 // @route   GET /api/users/stats
 // @access  Private (for future implementation)

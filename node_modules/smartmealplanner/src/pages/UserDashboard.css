@@ -748,6 +748,11 @@
   outline-offset: 2px;
 }
 
+/* Goal Selection Section */
+.goal-selection-section {
+  margin: 2rem 0;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .profile-card,

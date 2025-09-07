@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileEdit from '../components/ProfileEdit';
+import GoalSelection from '../components/GoalSelection';
 import './UserDashboard.css';
 
 const UserDashboard = () => {
@@ -279,6 +280,27 @@ const UserDashboard = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Goal Selection Section */}
+          <div className="goal-selection-section">
+            <GoalSelection 
+              currentGoal={user?.primaryGoal}
+              onGoalUpdate={(updatedUser) => {
+                // Recalculate health metrics with new goal
+                if (updatedUser.height && updatedUser.weight) {
+                  const bmi = calculateBMI(updatedUser.height, updatedUser.weight);
+                  const bmiCategory = getBMICategory(bmi);
+                  const calories = calculateCalories(updatedUser);
+                  const recommendations = getGoalRecommendations(updatedUser.primaryGoal);
+                  
+                  setUser({ ...updatedUser, bmi });
+                  setHealthMetrics({ bmi, bmiCategory, calories, recommendations });
+                } else {
+                  setUser(updatedUser);
+                }
+              }}
+            />
           </div>
 
           {/* Health Metrics Section */}
