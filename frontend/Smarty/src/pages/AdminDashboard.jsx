@@ -6,6 +6,7 @@ import './AdminDashboard.css';
 const AdminDashboard = () => {
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const [user, setUser] = useState(null);
   const [recipeRequests, setRecipeRequests] = useState([]);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
@@ -34,11 +35,19 @@ const AdminDashboard = () => {
 
   const fetchUserStats = async () => {
     try {
-      const response = await fetch(buildApiUrl('/api/users/stats'));
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/users/admin/count'), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
-        setUserStats(data.data.stats);
+        setUserStats(data.data);
+      } else {
+        console.error('Failed to fetch user stats:', data.message);
       }
     } catch (error) {
       console.error('Error fetching user stats:', error);
@@ -156,10 +165,10 @@ const AdminDashboard = () => {
               </div>
               
               <div className="stat-card">
-                <div className="stat-icon">📊</div>
+                <div className="stat-icon">❌</div>
                 <div className="stat-content">
-                  <h3>Average Age</h3>
-                  <p className="stat-number">{userStats?.averageAge ? Math.round(userStats.averageAge) : 0}</p>
+                  <h3>Inactive Users</h3>
+                  <p className="stat-number">{userStats?.inactiveUsers || 0}</p>
                 </div>
               </div>
               
@@ -167,7 +176,44 @@ const AdminDashboard = () => {
                 <div className="stat-icon">⚖️</div>
                 <div className="stat-content">
                   <h3>Average BMI</h3>
-                  <p className="stat-number">{userStats?.averageBMI ? userStats.averageBMI.toFixed(1) : 0}</p>
+                  <p className="stat-number">{userStats?.averageBMI || 0}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="user-insights">
+            <h2>User Insights</h2>
+            <div className="insights-grid">
+              <div className="insight-card">
+                <div className="insight-icon">🎂</div>
+                <div className="insight-content">
+                  <h3>Average Age</h3>
+                  <p className="insight-number">{userStats?.averageAge || 0} years</p>
+                </div>
+              </div>
+              
+              <div className="insight-card">
+                <div className="insight-icon">🎯</div>
+                <div className="insight-content">
+                  <h3>Weight Loss Goal</h3>
+                  <p className="insight-number">{userStats?.goalDistribution?.['lose-weight'] || 0} users</p>
+                </div>
+              </div>
+              
+              <div className="insight-card">
+                <div className="insight-icon">💪</div>
+                <div className="insight-content">
+                  <h3>Muscle Gain Goal</h3>
+                  <p className="insight-number">{userStats?.goalDistribution?.['gain-muscle'] || 0} users</p>
+                </div>
+              </div>
+              
+              <div className="insight-card">
+                <div className="insight-icon">⚡</div>
+                <div className="insight-content">
+                  <h3>Very Active Users</h3>
+                  <p className="insight-number">{userStats?.activityDistribution?.['very-active'] || 0} users</p>
                 </div>
               </div>
             </div>
@@ -179,8 +225,8 @@ const AdminDashboard = () => {
               <div className="action-card">
                 <h3>User Management</h3>
                 <p>View and manage user accounts</p>
-                <button className="btn btn-light" disabled>
-                  Coming Soon
+                <button className="btn btn-primary" onClick={() => setShowUserManagement(true)}>
+                  Manage Users
                 </button>
               </div>
               
@@ -373,6 +419,164 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+      
+      {showUserManagement && (
+        <UserManagement 
+          onClose={() => setShowUserManagement(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+// User Management Component
+const UserManagement = ({ onClose }) => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchUsers = async (page = 1, search = '') => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/users/admin/all?page=${page}&limit=10&search=${search}`), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.data.users);
+        setTotalPages(data.data.totalPages);
+        setCurrentPage(data.data.currentPage);
+      } else {
+        console.error('Failed to fetch users:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl(`/api/users/admin/${userId}`), {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('User deleted successfully');
+        fetchUsers(currentPage, searchTerm);
+      } else {
+        alert('Failed to delete user: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Error deleting user');
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchUsers(1, searchTerm);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content user-management-modal">
+        <div className="modal-header">
+          <h2>User Management</h2>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="modal-body">
+          <form onSubmit={handleSearch} className="search-form">
+            <input
+              type="text"
+              placeholder="Search users by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            <button type="submit" className="btn btn-primary">Search</button>
+          </form>
+
+          {loading ? (
+            <div className="loading">Loading users...</div>
+          ) : (
+            <>
+              <div className="users-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <tr key={user._id}>
+                        <td>{user.name}</td>
+                        <td>{user.email}</td>
+                        <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          <button 
+                            className="btn btn-danger btn-sm"
+                            onClick={() => deleteUser(user._id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPages > 1 && (
+                <div className="pagination">
+                  <button 
+                    className="btn btn-secondary"
+                    disabled={currentPage === 1}
+                    onClick={() => fetchUsers(currentPage - 1, searchTerm)}
+                  >
+                    Previous
+                  </button>
+                  <span>Page {currentPage} of {totalPages}</span>
+                  <button 
+                    className="btn btn-secondary"
+                    disabled={currentPage === totalPages}
+                    onClick={() => fetchUsers(currentPage + 1, searchTerm)}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

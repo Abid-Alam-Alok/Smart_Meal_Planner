@@ -285,11 +285,8 @@ export const updateInventoryItem = async (req, res) => {
     if (name !== undefined) inventoryItem.name = name.trim();
     if (category !== undefined) inventoryItem.category = category;
     if (quantity !== undefined) {
-      inventoryItem.quantity = Number(quantity);
-      // If quantity is 0 or less, mark as inactive
-      if (inventoryItem.quantity <= 0) {
-        inventoryItem.isActive = false;
-      }
+      // Use updateQuantity method to create history records
+      await inventoryItem.updateQuantity(Number(quantity));
     }
     if (unit !== undefined) inventoryItem.unit = unit;
     if (expirationDate !== undefined) {
@@ -349,6 +346,22 @@ export const deleteInventoryItem = async (req, res) => {
         message: 'Inventory item not found'
       });
     }
+    
+    // Create history record before deleting
+    const HistoryItem = (await import('../models/HistoryItem.js')).default;
+    const historyData = {
+      userId,
+      originalItemId: itemId,
+      name: inventoryItem.name,
+      category: inventoryItem.category,
+      quantity: inventoryItem.quantity,
+      unit: inventoryItem.unit,
+      action: 'deleted',
+      notes: 'Item deleted from inventory',
+      actionDate: new Date()
+    };
+    
+    await HistoryItem.create(historyData);
     
     // Soft delete - mark as inactive
     inventoryItem.isActive = false;

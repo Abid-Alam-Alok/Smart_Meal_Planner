@@ -33,9 +33,9 @@ const mealItemSchema = new mongoose.Schema({
 });
 
 const intakeMealSchema = new mongoose.Schema({
+  // User Reference (supports both ObjectId for regular users and String for admin)
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: mongoose.Schema.Types.Mixed,
     required: true
   },
   date: {

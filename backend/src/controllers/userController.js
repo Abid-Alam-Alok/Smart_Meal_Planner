@@ -685,3 +685,189 @@ export const getRecommendedCalories = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all users (Admin only)
+// @route   GET /api/users/admin/all
+// @access  Private (Admin)
+export const getAllUsers = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build query
+    let query = {};
+    
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    if (status !== 'all') {
+      query.isActive = status === 'active';
+    }
+
+    // Get users with pagination
+    const users = await User.find(query)
+      .select('-password -passwordResetToken -passwordResetExpires -emailVerificationToken')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get total count
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    // Get user statistics
+    const stats = await User.getStats();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalUsers,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        },
+        stats
+      }
+    });
+
+  } catch (error) {
+    console.error('Get all users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching users'
+    });
+  }
+};
+
+// @desc    Delete user by ID (Admin only)
+// @route   DELETE /api/users/admin/:id
+// @access  Private (Admin)
+export const deleteUser = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const { id } = req.params;
+
+    // Prevent admin from deleting themselves
+    if (id === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete admin account'
+      });
+    }
+
+    // Find and delete user
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.email} has been deleted successfully`
+    });
+
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting user'
+    });
+  }
+};
+
+// @desc    Get user count (Admin only)
+// @route   GET /api/users/admin/count
+// @access  Private (Admin)
+export const getUserCount = async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ isActive: true });
+    const inactiveUsers = await User.countDocuments({ isActive: false });
+
+    // Calculate average BMI and other statistics
+    const users = await User.find({}, 'bmi age gender primaryGoal activityLevel');
+    
+    // Calculate average BMI (excluding null values)
+    const validBMIs = users.filter(user => user.bmi && user.bmi > 0).map(user => user.bmi);
+    const averageBMI = validBMIs.length > 0 
+      ? Math.round((validBMIs.reduce((sum, bmi) => sum + bmi, 0) / validBMIs.length) * 100) / 100
+      : 0;
+
+    // Calculate average age
+    const validAges = users.filter(user => user.age && user.age > 0).map(user => user.age);
+    const averageAge = validAges.length > 0
+      ? Math.round(validAges.reduce((sum, age) => sum + age, 0) / validAges.length)
+      : 0;
+
+    // Count users by goal
+    const goalCounts = {
+      'lose-weight': users.filter(user => user.primaryGoal === 'lose-weight').length,
+      'gain-muscle': users.filter(user => user.primaryGoal === 'gain-muscle').length,
+      'maintain-fitness': users.filter(user => user.primaryGoal === 'maintain-fitness').length
+    };
+
+    // Count users by activity level
+    const activityCounts = {
+      'sedentary': users.filter(user => user.activityLevel === 'sedentary').length,
+      'lightly-active': users.filter(user => user.activityLevel === 'lightly-active').length,
+      'moderately-active': users.filter(user => user.activityLevel === 'moderately-active').length,
+      'very-active': users.filter(user => user.activityLevel === 'very-active').length
+    };
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        averageBMI,
+        averageAge,
+        goalDistribution: goalCounts,
+        activityDistribution: activityCounts
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user count error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching user count'
+    });
+  }
+};

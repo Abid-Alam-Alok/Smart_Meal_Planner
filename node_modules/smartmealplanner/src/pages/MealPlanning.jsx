@@ -21,6 +21,10 @@ const MealPlanning = () => {
   const [consumingRecipe, setConsumingRecipe] = useState(null);
   const [inventorySearchActive, setInventorySearchActive] = useState(false);
   const [inventoryRecipes, setInventoryRecipes] = useState([]);
+  const [showConsumeConfirmation, setShowConsumeConfirmation] = useState(false);
+  const [selectedRecipeForConsume, setSelectedRecipeForConsume] = useState(null);
+  const [userInventory, setUserInventory] = useState([]);
+  const [consumeIngredients, setConsumeIngredients] = useState([]);
   const [requestForm, setRequestForm] = useState({
     name: '',
     description: '',
@@ -303,40 +307,149 @@ const MealPlanning = () => {
     }
   };
 
+  // Fetch user inventory
+  const fetchUserInventory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/inventory', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setUserInventory(result.data || result);
+      }
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+    }
+  };
+
+  // Show consume confirmation popup
   const handleConsumeRecipe = async (recipe) => {
     try {
-      setConsumingRecipe(recipe._id);
+      // Fetch fresh inventory data
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/inventory', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      let currentInventory = [];
+      if (response.ok) {
+        const result = await response.json();
+        currentInventory = result.data || result;
+        setUserInventory(currentInventory);
+      }
+
+      setSelectedRecipeForConsume(recipe);
+      
+      // Match recipe ingredients with user inventory
+      const matchedIngredients = recipe.ingredients.map(ingredient => {
+        const inventoryItem = currentInventory.find(item => 
+          item.name.toLowerCase().trim() === ingredient.name.toLowerCase().trim()
+        );
+        
+        return {
+          ...ingredient,
+          id: `${ingredient.name}-${Math.random()}`,
+          inventoryItem: inventoryItem || null,
+          consumeQuantity: ingredient.quantity,
+          consumeUnit: ingredient.unit,
+          canConsume: !!inventoryItem
+        };
+      });
+      
+      setConsumeIngredients(matchedIngredients);
+      setShowConsumeConfirmation(true);
+    } catch (error) {
+      console.error('Error preparing consumption:', error);
+      alert('Failed to load inventory data. Please try again.');
+    }
+  };
+
+  // Confirm consumption and update inventory
+  const confirmConsumption = async () => {
+    try {
+      setConsumingRecipe(selectedRecipeForConsume._id);
       
       const token = localStorage.getItem('token');
-      const response = await fetch(buildApiUrl('/api/intake/meal'), {
+      
+      // Prepare ingredients data for the consume-recipe endpoint
+      const ingredientsData = consumeIngredients
+        .filter(ingredient => ingredient.consumeQuantity > 0)
+        .map(ingredient => ({
+          name: ingredient.name,
+          quantity: ingredient.consumeQuantity,
+          unit: ingredient.consumeUnit,
+          inventoryItemId: ingredient.inventoryItem?._id || null
+        }));
+
+      // Use the new consume-recipe endpoint that handles nutrition tracking, inventory updates, and history
+      const consumeResponse = await fetch(buildApiUrl('/api/intake/consume-recipe'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          name: recipe.name,
-          calories: recipe.calories,
-          quantity: 1,
-          unit: 'serving',
-          mealType: 'lunch', // Default to lunch, user can change later
-          recipeId: recipe._id,
-          ingredients: recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')
+          recipeName: selectedRecipeForConsume.name,
+          recipeId: selectedRecipeForConsume._id,
+          mealType: 'lunch', // You could make this selectable in the UI
+          totalCalories: selectedRecipeForConsume.calories,
+          ingredients: ingredientsData,
+          nutritionalInfo: {
+            calories: selectedRecipeForConsume.calories,
+            protein: selectedRecipeForConsume.protein || 0,
+            carbs: selectedRecipeForConsume.carbs || 0,
+            fat: selectedRecipeForConsume.fat || 0
+          }
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add recipe to nutrition tracker');
+      if (!consumeResponse.ok) {
+        const errorData = await consumeResponse.json();
+        throw new Error(errorData.message || 'Failed to consume recipe');
       }
 
-      alert(`"${recipe.name}" has been added to your nutrition tracker!\n\nCalories: ${recipe.calories}\nIngredients: ${recipe.ingredients.map(ing => `${ing.quantity} ${ing.unit} ${ing.name}`).join(', ')}`);
+      const result = await consumeResponse.json();
+      
+      alert(`"${selectedRecipeForConsume.name}" has been consumed successfully! ${result.data.historyItems} ingredients tracked in history.`);
+      setShowConsumeConfirmation(false);
+      setSelectedRecipeForConsume(null);
+      setConsumeIngredients([]);
     } catch (err) {
       console.error('Error consuming recipe:', err);
-      alert(`Failed to add recipe to nutrition tracker: ${err.message}`);
+      alert(`Failed to consume recipe: ${err.message}`);
     } finally {
       setConsumingRecipe(null);
     }
+  };
+
+  // Update consume ingredient quantity
+  const updateConsumeQuantity = (ingredientId, newQuantity) => {
+    setConsumeIngredients(prev => 
+      prev.map(ingredient => 
+        ingredient.id === ingredientId 
+          ? { ...ingredient, consumeQuantity: Math.max(0, parseFloat(newQuantity) || 0) }
+          : ingredient
+      )
+    );
+  };
+
+  // Remove ingredient from consumption
+  const removeConsumeIngredient = (ingredientId) => {
+    setConsumeIngredients(prev => 
+      prev.map(ingredient => 
+        ingredient.id === ingredientId 
+          ? { ...ingredient, consumeQuantity: 0 }
+          : ingredient
+      )
+    );
   };
 
   if (userLoading) {
@@ -996,6 +1109,123 @@ const MealPlanning = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Consume Confirmation Modal */}
+      {showConsumeConfirmation && selectedRecipeForConsume && (
+        <div className="modal-overlay" onClick={() => setShowConsumeConfirmation(false)}>
+          <div className="consume-confirmation-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Confirm Recipe Consumption</h2>
+              <button 
+                className="btn btn-light btn-sm"
+                onClick={() => setShowConsumeConfirmation(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-content">
+              <div className="recipe-info">
+                <h3>{selectedRecipeForConsume.name}</h3>
+                <p><strong>Calories:</strong> {selectedRecipeForConsume.calories}</p>
+              </div>
+
+              <div className="ingredients-consumption">
+                <h4>Ingredients & Inventory Match</h4>
+                <p className="consumption-note">
+                  Review the ingredients below. You can adjust quantities or remove items before confirming.
+                </p>
+                
+                <div className="consume-ingredients-list">
+                  {consumeIngredients.map((ingredient) => (
+                    <div key={ingredient.id} className={`consume-ingredient-item ${ingredient.inventoryItem ? 'available' : 'not-available'}`}>
+                      <div className="ingredient-info">
+                        <div className="ingredient-name">
+                          <span className="status-icon">
+                            {ingredient.inventoryItem ? '✅' : '❌'}
+                          </span>
+                          <strong>{ingredient.name}</strong>
+                        </div>
+                        <div className="ingredient-details">
+                          <span className="recipe-amount">Recipe needs: {ingredient.quantity} {ingredient.unit}</span>
+                          {ingredient.inventoryItem && (
+                            <span className="inventory-amount">
+                              Available: {ingredient.inventoryItem.quantity} {ingredient.inventoryItem.unit}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {ingredient.inventoryItem ? (
+                        <div className="consumption-controls">
+                          <label>Consume:</label>
+                          <div className="quantity-controls">
+                            <input
+                              type="number"
+                              value={ingredient.consumeQuantity}
+                              onChange={(e) => updateConsumeQuantity(ingredient.id, e.target.value)}
+                              min="0"
+                              max={ingredient.inventoryItem.quantity}
+                              step="0.1"
+                              className="quantity-input"
+                            />
+                            <span className="unit-label">{ingredient.unit}</span>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => removeConsumeIngredient(ingredient.id)}
+                              title="Don't consume this ingredient"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="not-available-notice">
+                          <span>Not in inventory</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="consumption-summary">
+                <h4>Summary</h4>
+                <div className="summary-stats">
+                  <div className="stat">
+                    <span className="stat-label">Total ingredients:</span>
+                    <span className="stat-value">{consumeIngredients.length}</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-label">Available in inventory:</span>
+                    <span className="stat-value">{consumeIngredients.filter(ing => ing.inventoryItem).length}</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-label">Will be consumed:</span>
+                    <span className="stat-value">{consumeIngredients.filter(ing => ing.consumeQuantity > 0).length}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowConsumeConfirmation(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-success"
+                  onClick={confirmConsumption}
+                  disabled={consumingRecipe === selectedRecipeForConsume._id}
+                >
+                  {consumingRecipe === selectedRecipeForConsume._id ? 'Processing...' : 'Confirm & Consume'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

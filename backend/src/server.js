@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
 import mealRoutes from "./routes/mealRoutes.js";
 import intakeMealsRoutes from "./routes/intakeMeals.js";
+import historyRoutes from "./routes/historyRoutes.js";
 import { connectDB } from "./config/database.js";
 import { ratelimit } from "./config/upstash.js";
 import rateLimiter from "./middlewares/rateLimiter.js";
@@ -44,6 +45,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/meals", mealRoutes);
 app.use("/api/intake", intakeMealsRoutes);
+app.use("/api/history", historyRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -8,7 +8,10 @@ import {
   updateUserProfile,
   updateUserGoal,
   getUserStats,
-  getRecommendedCalories
+  getRecommendedCalories,
+  getAllUsers,
+  deleteUser,
+  getUserCount
 } from '../controllers/userController.js';
 // import rateLimiter from '../middlewares/rateLimiter.js';
 
@@ -56,5 +59,21 @@ router.put('/update-goal', auth, updateUserGoal);
 // @route   GET /api/users/recommended-calories
 // @access  Private
 router.get('/recommended-calories', auth, getRecommendedCalories);
+
+// Admin-only routes
+// @desc    Get all users (Admin only)
+// @route   GET /api/users/admin/all
+// @access  Private (Admin)
+router.get('/admin/all', auth, getAllUsers);
+
+// @desc    Get user count (Admin only)
+// @route   GET /api/users/admin/count
+// @access  Private (Admin)
+router.get('/admin/count', auth, getUserCount);
+
+// @desc    Delete user by ID (Admin only)
+// @route   DELETE /api/users/admin/:id
+// @access  Private (Admin)
+router.delete('/admin/:id', auth, deleteUser);
 
 export default router;

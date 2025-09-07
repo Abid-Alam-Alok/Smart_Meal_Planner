@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PersonalInventory.css';
 
 const PersonalInventory = () => {
+  const navigate = useNavigate();
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -225,16 +227,24 @@ const PersonalInventory = () => {
             <h1>Personal Inventory</h1>
             <p>Manage your ingredients and track expiration dates</p>
           </div>
-          <button 
-            className="btn btn-primary"
-            onClick={() => {
-              resetForm();
-              setEditingItem(null);
-              setShowAddForm(true);
-            }}
-          >
-            + Add Ingredient
-          </button>
+          <div className="header-buttons">
+            <button 
+              className="btn btn-secondary"
+              onClick={() => navigate('/history')}
+            >
+              📋 View History
+            </button>
+            <button 
+              className="btn btn-primary"
+              onClick={() => {
+                resetForm();
+                setEditingItem(null);
+                setShowAddForm(true);
+              }}
+            >
+              + Add Ingredient
+            </button>
+          </div>
         </div>
       </header>
 

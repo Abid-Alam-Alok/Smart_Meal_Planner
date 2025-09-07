@@ -2,10 +2,9 @@ import mongoose from 'mongoose';
 
 // Inventory Schema for Smart Meal Planner
 const inventorySchema = new mongoose.Schema({
-  // User Reference
+  // User Reference (supports both ObjectId for regular users and String for admin)
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: mongoose.Schema.Types.Mixed,
     required: [true, 'User ID is required'],
     index: true
   },
@@ -196,11 +195,28 @@ inventorySchema.statics.findByCategory = function(userId, category) {
 };
 
 // Instance methods
-inventorySchema.methods.updateQuantity = function(newQuantity) {
+inventorySchema.methods.updateQuantity = async function(newQuantity) {
+  const originalQuantity = this.quantity;
+  const consumedAmount = originalQuantity - newQuantity;
+  
   this.quantity = newQuantity;
   if (newQuantity <= 0) {
     this.isActive = false;
   }
+  
+  // Create history record if quantity was consumed (decreased)
+  // Create history record if quantity was consumed (decreased)
+  if (consumedAmount > 0) {
+    try {
+      const { default: HistoryItem } = await import('./HistoryItem.js');
+      await HistoryItem.createFromInventory(this, 'consumed', {
+        quantity: consumedAmount // Record the actual consumed amount
+      });
+    } catch (error) {
+      console.error('Error creating history record:', error);
+    }
+  }
+  
   return this.save();
 };
 

@@ -1,5 +1,7 @@
 import express from 'express';
 import IntakeMeal from '../models/IntakeMeal.js';
+import HistoryItem from '../models/HistoryItem.js';
+import Inventory from '../models/Inventory.js';
 import auth from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -293,6 +295,131 @@ router.get('/summary', auth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching nutrition summary:', error);
     res.status(500).json({ message: 'Server error while fetching nutrition summary' });
+  }
+});
+
+// Consume recipe - handles intake tracking, inventory updates, and history creation
+router.post('/consume-recipe', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      recipeName,
+      recipeId,
+      mealType,
+      totalCalories,
+      ingredients, // Array of { name, quantity, unit, inventoryItemId }
+      nutritionalInfo
+    } = req.body;
+
+    // Validate required fields
+    if (!recipeName || !mealType || !totalCalories || !ingredients || !Array.isArray(ingredients)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Recipe name, meal type, total calories, and ingredients array are required'
+      });
+    }
+
+    if (!['breakfast', 'lunch', 'dinner', 'snack'].includes(mealType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid meal type. Must be breakfast, lunch, dinner, or snack'
+      });
+    }
+
+    // Get today's intake
+    const intake = await IntakeMeal.getTodaysIntake(userId);
+
+    // Add meal to intake
+    const mealData = {
+      name: recipeName,
+      calories: Number(totalCalories),
+      quantity: 1,
+      unit: 'serving',
+      mealType,
+      timeConsumed: new Date(),
+      recipeId: recipeId || null
+    };
+
+    await intake.addMeal(mealData);
+
+    // Process each ingredient for inventory updates and history tracking
+    const historyItems = [];
+    const inventoryUpdates = [];
+
+    for (const ingredient of ingredients) {
+      const { name, quantity, unit, inventoryItemId } = ingredient;
+
+      if (!name || !quantity || !unit) {
+        continue; // Skip invalid ingredients
+      }
+
+      // Find and update inventory item if it exists
+      if (inventoryItemId) {
+        try {
+          const inventoryItem = await Inventory.findOne({
+            _id: inventoryItemId,
+            userId,
+            isActive: true
+          });
+
+          if (inventoryItem) {
+            // Calculate how much we can actually consume (limited by available quantity)
+            const actualConsumedQuantity = Math.min(quantity, inventoryItem.quantity);
+            const oldQuantity = inventoryItem.quantity;
+            const newQuantity = inventoryItem.quantity - actualConsumedQuantity;
+            
+            // Update inventory quantity
+            await inventoryItem.updateQuantity(newQuantity);
+            inventoryUpdates.push({
+              itemId: inventoryItemId,
+              oldQuantity: oldQuantity,
+              newQuantity: newQuantity,
+              consumed: actualConsumedQuantity
+            });
+
+            // Create history record for consumed ingredient (even if partial consumption)
+            const historyData = {
+              userId,
+              originalItemId: inventoryItemId,
+              name: inventoryItem.name,
+              category: inventoryItem.category,
+              quantity: actualConsumedQuantity,
+              unit: unit,
+              action: 'consumed',
+              recipeId: recipeId || null,
+              recipeName: recipeName,
+              notes: actualConsumedQuantity < quantity 
+                ? `Consumed ${actualConsumedQuantity} of ${quantity} ${unit} needed for recipe: ${recipeName} (insufficient inventory)`
+                : `Consumed as part of recipe: ${recipeName}`,
+              actionDate: new Date()
+            };
+
+            const historyItem = await HistoryItem.create(historyData);
+            historyItems.push(historyItem);
+          }
+        } catch (error) {
+          console.error(`Error processing ingredient ${name}:`, error);
+          // Continue processing other ingredients even if one fails
+        }
+      }
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Recipe consumed successfully',
+      data: {
+        intake,
+        inventoryUpdates,
+        historyItems: historyItems.length,
+        consumedIngredients: ingredients.length
+      }
+    });
+  } catch (error) {
+    console.error('Error consuming recipe:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while consuming recipe'
+    });
   }
 });
 
