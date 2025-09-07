@@ -432,7 +432,8 @@ router.post('/admin/create', async (req, res) => {
       });
     }
     
-    const meal = new Meal({
+    // Handle admin user case - admin doesn't have a valid ObjectId
+    const mealData = {
       name,
       description,
       calories,
@@ -444,10 +445,16 @@ router.post('/admin/create', async (req, res) => {
       prepTime,
       cookTime,
       servings,
-      tags: tags || [],
-      createdBy: req.user.id,
-      approvedBy: req.user.id
-    });
+      tags: tags || []
+    };
+    
+    // Only set createdBy and approvedBy if user has a valid ObjectId
+    if (req.user.id !== 'admin') {
+      mealData.createdBy = req.user.id;
+      mealData.approvedBy = req.user.id;
+    }
+    
+    const meal = new Meal(mealData);
     
     await meal.save();
     
@@ -461,6 +468,179 @@ router.post('/admin/create', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while creating recipe'
+    });
+  }
+});
+
+// @desc    Get all recipes for admin (including inactive)
+// @route   GET /api/meals/admin/all
+// @access  Private (Admin)
+router.get('/admin/all', async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const { page = 1, limit = 12, search, difficulty, dietType } = req.query;
+    
+    let query = {};
+    
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Filter by difficulty
+    if (difficulty && difficulty !== 'all') {
+      query.difficulty = difficulty;
+    }
+    
+    // Filter by diet type
+    if (dietType && dietType !== 'all') {
+      query.dietType = dietType;
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const meals = await Meal.find(query)
+      .populate('createdBy', 'name email')
+      .populate('approvedBy', 'name email')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Meal.countDocuments(query);
+
+    res.json({
+      success: true,
+      data: meals,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get all recipes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching recipes'
+    });
+  }
+});
+
+// @desc    Update a recipe
+// @route   PUT /api/meals/admin/:id
+// @access  Private (Admin)
+router.put('/admin/:id', async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const {
+      name,
+      description,
+      calories,
+      ingredients,
+      instructions,
+      image,
+      difficulty,
+      dietType,
+      prepTime,
+      cookTime,
+      servings,
+      tags,
+      isActive
+    } = req.body;
+
+    const meal = await Meal.findById(req.params.id);
+
+    if (!meal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recipe not found'
+      });
+    }
+
+    // Update fields
+    if (name !== undefined) meal.name = name;
+    if (description !== undefined) meal.description = description;
+    if (calories !== undefined) meal.calories = calories;
+    if (ingredients !== undefined) meal.ingredients = ingredients;
+    if (instructions !== undefined) meal.instructions = instructions;
+    if (image !== undefined) meal.image = image;
+    if (difficulty !== undefined) meal.difficulty = difficulty;
+    if (dietType !== undefined) meal.dietType = dietType;
+    if (prepTime !== undefined) meal.prepTime = prepTime;
+    if (cookTime !== undefined) meal.cookTime = cookTime;
+    if (servings !== undefined) meal.servings = servings;
+    if (tags !== undefined) meal.tags = tags;
+    if (isActive !== undefined) meal.isActive = isActive;
+
+    meal.updatedAt = new Date();
+
+    await meal.save();
+
+    res.json({
+      success: true,
+      message: 'Recipe updated successfully',
+      data: meal
+    });
+  } catch (error) {
+    console.error('Update recipe error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating recipe'
+    });
+  }
+});
+
+// @desc    Delete a recipe
+// @route   DELETE /api/meals/admin/:id
+// @access  Private (Admin)
+router.delete('/admin/:id', async (req, res) => {
+  try {
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.'
+      });
+    }
+
+    const meal = await Meal.findById(req.params.id);
+
+    if (!meal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recipe not found'
+      });
+    }
+
+    await Meal.findByIdAndDelete(req.params.id);
+
+    res.json({
+      success: true,
+      message: 'Recipe deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete recipe error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting recipe'
     });
   }
 });

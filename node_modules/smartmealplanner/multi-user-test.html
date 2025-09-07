@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-User Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .port-section {
+            border: 2px solid #007bff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .port-5173 { border-color: #28a745; }
+        .port-5174 { border-color: #ffc107; }
+        .port-5175 { border-color: #dc3545; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Multi-User JWT Authentication Test</h1>
+        <p>This page tests JWT authentication across multiple frontend instances running on different ports.</p>
+        
+        <div class="port-section port-5173">
+            <h3>🟢 Port 5173 - User Session</h3>
+            <button onclick="loginUser('5173', 'user1@test.com', 'password123')">Login as User 1</button>
+            <button onclick="loginAdmin('5173')">Login as Admin</button>
+            <button onclick="testAPI('5173')">Test API</button>
+            <button onclick="logout('5173')">Logout</button>
+            <div id="result-5173" class="result"></div>
+        </div>
+
+        <div class="port-section port-5174">
+            <h3>🟡 Port 5174 - User Session</h3>
+            <button onclick="loginUser('5174', 'user2@test.com', 'password123')">Login as User 2</button>
+            <button onclick="loginAdmin('5174')">Login as Admin</button>
+            <button onclick="testAPI('5174')">Test API</button>
+            <button onclick="logout('5174')">Logout</button>
+            <div id="result-5174" class="result"></div>
+        </div>
+
+        <div class="port-section port-5175">
+            <h3>🔴 Port 5175 - User Session</h3>
+            <button onclick="loginUser('5175', 'user3@test.com', 'password123')">Login as User 3</button>
+            <button onclick="loginAdmin('5175')">Login as Admin</button>
+            <button onclick="testAPI('5175')">Test API</button>
+            <button onclick="logout('5175')">Logout</button>
+            <div id="result-5175" class="result"></div>
+        </div>
+
+        <div class="container">
+            <h3>📊 Session Status</h3>
+            <button onclick="checkAllSessions()">Check All Sessions</button>
+            <div id="session-status" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        
+        // Get storage key for specific port
+        function getStorageKey(port, key) {
+            return `port_${port}_${key}`;
+        }
+        
+        // Store token for specific port
+        function storeToken(port, token, user) {
+            localStorage.setItem(getStorageKey(port, 'token'), token);
+            localStorage.setItem(getStorageKey(port, 'user'), JSON.stringify(user));
+        }
+        
+        // Get token for specific port
+        function getToken(port) {
+            return localStorage.getItem(getStorageKey(port, 'token'));
+        }
+        
+        // Clear storage for specific port
+        function clearStorage(port) {
+            localStorage.removeItem(getStorageKey(port, 'token'));
+            localStorage.removeItem(getStorageKey(port, 'user'));
+        }
+        
+        // Update result display
+        function updateResult(port, message, type = 'info') {
+            const resultDiv = document.getElementById(`result-${port}`);
+            resultDiv.innerHTML = `<span class="${type}">${message}</span>`;
+        }
+        
+        // Login as regular user
+        async function loginUser(port, email, password) {
+            try {
+                updateResult(port, 'Logging in...', 'info');
+                
+                const response = await fetch(`${API_BASE}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': `http://localhost:${port}`
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    storeToken(port, data.data.token, data.data.user);
+                    updateResult(port, `✅ Login successful! User: ${data.data.user.email || data.data.user.name}`, 'success');
+                } else {
+                    updateResult(port, `❌ Login failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                updateResult(port, `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Login as admin
+        async function loginAdmin(port) {
+            await loginUser(port, 'admin', 'admin1234');
+        }
+        
+        // Test API with stored token
+        async function testAPI(port) {
+            try {
+                const token = getToken(port);
+                if (!token) {
+                    updateResult(port, '❌ No token found. Please login first.', 'error');
+                    return;
+                }
+                
+                updateResult(port, 'Testing API...', 'info');
+                
+                const response = await fetch(`${API_BASE}/meals`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Origin': `http://localhost:${port}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateResult(port, `✅ API test successful! Found ${data.data.length} recipes.`, 'success');
+                } else {
+                    updateResult(port, `❌ API test failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                updateResult(port, `❌ API error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Logout
+        function logout(port) {
+            clearStorage(port);
+            updateResult(port, '🔓 Logged out successfully', 'info');
+        }
+        
+        // Check all sessions
+        function checkAllSessions() {
+            const ports = ['5173', '5174', '5175'];
+            let statusHTML = '<h4>Current Sessions:</h4>';
+            
+            ports.forEach(port => {
+                const token = getToken(port);
+                const user = localStorage.getItem(getStorageKey(port, 'user'));
+                
+                if (token && user) {
+                    const userData = JSON.parse(user);
+                    statusHTML += `<p><strong>Port ${port}:</strong> <span class="success">✅ Logged in as ${userData.email || userData.name}</span></p>`;
+                } else {
+                    statusHTML += `<p><strong>Port ${port}:</strong> <span class="error">❌ Not logged in</span></p>`;
+                }
+            });
+            
+            document.getElementById('session-status').innerHTML = statusHTML;
+        }
+        
+        // Initialize
+        window.onload = function() {
+            checkAllSessions();
+        };
+    </script>
+</body>
+</html>

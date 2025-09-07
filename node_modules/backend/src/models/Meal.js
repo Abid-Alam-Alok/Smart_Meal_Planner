@@ -109,8 +109,8 @@ const mealSchema = new mongoose.Schema({
   // Creator Information
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Creator ID is required']
+    ref: 'User'
+    // Not required to allow admin users without valid ObjectIds
   },
   approvedBy: {
     type: mongoose.Schema.Types.ObjectId,

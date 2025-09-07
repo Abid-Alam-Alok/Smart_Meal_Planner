@@ -23,7 +23,14 @@ export const API_ENDPOINTS = {
   
   // Admin endpoints
   ADMIN_STATS: '/api/admin/stats',
-  ADMIN_USERS: '/api/admin/users'
+  ADMIN_USERS: '/api/admin/users',
+  
+  // Recipe management
+  RECIPES_ALL: '/api/meals/admin/all',
+  RECIPE_CREATE: '/api/meals/admin/create',
+  RECIPE_UPDATE: '/api/meals/admin',
+  RECIPE_DELETE: '/api/meals/admin',
+  RECIPES_APPROVED: '/api/meals/approved'
 };
 
 export default {

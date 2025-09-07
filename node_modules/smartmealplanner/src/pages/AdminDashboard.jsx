@@ -197,6 +197,28 @@ const AdminDashboard = () => {
               </div>
               
               <div className="action-card">
+                <h3>Meal Planner</h3>
+                <p>Create and manage new recipes</p>
+                <button 
+                  className="action-button" 
+                  onClick={() => navigate('/admin-meal-planner')}
+                >
+                  Create New Recipe
+                </button>
+              </div>
+              
+              <div className="action-card">
+                <h3>Recipe Management</h3>
+                <p>View, edit, and delete existing recipes</p>
+                <button 
+                  className="action-button" 
+                  onClick={() => navigate('/admin-recipe-manager')}
+                >
+                  Manage Recipes
+                </button>
+              </div>
+              
+              <div className="action-card">
                 <h3>System Settings</h3>
                 <p>Configure application settings</p>
                 <button className="action-button" disabled>
