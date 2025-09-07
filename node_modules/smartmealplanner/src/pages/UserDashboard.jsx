@@ -6,9 +6,12 @@ import './UserDashboard.css';
 
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [healthMetrics, setHealthMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [expiringItems, setExpiringItems] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
   const navigate = useNavigate();
 
   // BMI Categories with ranges and colors
@@ -165,6 +168,9 @@ const UserDashboard = () => {
       recommendations
     });
     setLoading(false);
+    
+    // Fetch expiring items
+    fetchExpiringItems();
   }, [navigate]);
 
   const handleLogout = () => {
@@ -194,6 +200,31 @@ const UserDashboard = () => {
     setShowProfileEdit(false);
   };
 
+  const fetchExpiringItems = async () => {
+    try {
+      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      if (!userData || !token) return;
+      
+      const response = await fetch('http://localhost:5001/api/inventory/expiring-this-week', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        const items = result.data || [];
+        setExpiringItems(items);
+        setNotificationCount(items.length);
+      }
+    } catch (error) {
+      console.error('Error fetching expiring items:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="user-dashboard loading">
@@ -211,6 +242,68 @@ const UserDashboard = () => {
             <p>Your personalized nutrition and fitness journey</p>
           </div>
           <div className="header-right">
+            <div className="notification-container">
+              <button 
+                className="notification-button"
+                onClick={() => setShowNotifications(!showNotifications)}
+                title="Items expiring this week"
+              >
+                🔔
+                {notificationCount > 0 && (
+                  <span className="notification-badge">{notificationCount}</span>
+                )}
+              </button>
+              {showNotifications && (
+                <div className="notification-dropdown">
+                  <div className="notification-header">
+                    <h4>Items Expiring This Week</h4>
+                    <button 
+                      className="close-notifications"
+                      onClick={() => setShowNotifications(false)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="notification-content">
+                    {expiringItems.length === 0 ? (
+                      <p className="no-notifications">No items expiring this week! 🎉</p>
+                    ) : (
+                      <ul className="expiring-items-list">
+                        {expiringItems.map((item) => (
+                          <li key={item._id} className="expiring-item">
+                            <div className="item-info">
+                              <span className="item-name">{item.name}</span>
+                              <span className="item-category">({item.category})</span>
+                            </div>
+                            <div className="item-expiry">
+                              <span className="expiry-date">
+                                {new Date(item.expirationDate).toLocaleDateString()}
+                              </span>
+                              <span className={`expiry-status ${item.expirationStatus}`}>
+                                {item.daysUntilExpiration === 0 ? 'Today' : 
+                                 item.daysUntilExpiration === 1 ? 'Tomorrow' :
+                                 `${item.daysUntilExpiration} days`}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="notification-footer">
+                    <button 
+                      className="view-inventory-button"
+                      onClick={() => {
+                        setShowNotifications(false);
+                        navigate('/inventory');
+                      }}
+                    >
+                      View Full Inventory
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <button onClick={handleLogout} className="logout-button">
               Logout
             </button>
@@ -434,6 +527,18 @@ const UserDashboard = () => {
               </div>
               
               <div className="feature-card">
+                <div className="feature-icon">📦</div>
+                <h3>Inventory</h3>
+                <p>Manage your personal ingredient inventory with expiration tracking</p>
+                <button 
+                  className="feature-button inventory-button" 
+                  onClick={() => window.location.href = '/inventory'}
+                >
+                  Manage Inventory
+                </button>
+              </div>
+              
+              <div className="feature-card">
                 <div className="feature-icon">🎯</div>
                 <h3>Goal Tracking</h3>
                 <p>Monitor your fitness and nutrition goals with detailed analytics</p>
@@ -496,6 +601,12 @@ const UserDashboard = () => {
           </div>
         </div>
       </main>
+      
+      {/* Status indicator at bottom left */}
+      <div className="status-indicator">
+        <div className="status-dot"></div>
+        <span className="status-text">System Online</span>
+      </div>
       
       {showProfileEdit && (
         <ProfileEdit 

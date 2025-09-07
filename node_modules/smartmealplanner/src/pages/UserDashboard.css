@@ -50,6 +50,218 @@
   font-size: 1rem;
 }
 
+/* Notification Styles */
+.notification-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notification-button {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notification-button:hover {
+  background: #e9ecef;
+  border-color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 2px solid white;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  width: 350px;
+  max-height: 400px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8f9fa;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.close-notifications {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-notifications:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.notification-content {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 2rem 1.25rem;
+  color: #6b7280;
+  margin: 0;
+  font-style: italic;
+}
+
+.expiring-items-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.expiring-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.expiring-item:last-child {
+  border-bottom: none;
+}
+
+.expiring-item:hover {
+  background: #f9fafb;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.item-category {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: capitalize;
+}
+
+.item-expiry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.expiry-date {
+  font-size: 0.8rem;
+  color: #374151;
+}
+
+.expiry-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.expiry-status.expired {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.expiry-status.expiring-soon {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.expiry-status.expiring-this-week {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.notification-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f8f9fa;
+}
+
+.view-inventory-button {
+  width: 100%;
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.view-inventory-button:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
 .logout-button {
   background: #ef4444;
   color: white;
@@ -548,6 +760,22 @@
   transform: none;
 }
 
+.feature-button.inventory-button {
+  background: #22c55e;
+  color: white;
+  cursor: pointer;
+}
+
+.feature-button.inventory-button:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.feature-button.inventory-button:active {
+  transform: translateY(0);
+}
+
 .actions-list {
   background: white;
   border-radius: 16px;
@@ -694,6 +922,19 @@
   .action-content {
     text-align: center;
   }
+  
+  /* Notification responsive styles */
+  .notification-dropdown {
+    width: 300px;
+    right: -50px;
+  }
+  
+  .status-indicator {
+    bottom: 15px;
+    left: 15px;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -738,12 +979,87 @@
   .profile-stats {
     grid-template-columns: 1fr;
   }
+  
+  /* Small mobile notification styles */
+  .notification-dropdown {
+    width: 280px;
+    right: -100px;
+  }
+  
+  .notification-button {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .notification-badge {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  
+  .status-indicator {
+    bottom: 10px;
+    left: 10px;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .status-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Status Indicator */
+.status-indicator {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 2s infinite;
+}
+
+.status-text {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
 }
 
 /* Accessibility improvements */
 .logout-button:focus-visible,
 .feature-button:focus-visible,
-.action-button:focus-visible {
+.action-button:focus-visible,
+.notification-button:focus-visible {
   outline: 2px solid #22c55e;
   outline-offset: 2px;
 }

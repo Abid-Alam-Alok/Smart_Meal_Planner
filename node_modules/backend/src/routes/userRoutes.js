@@ -230,6 +230,14 @@ router.post('/login', async (req, res) => {
 
     // Check for admin credentials
     if (email === 'admin' && password === 'admin1234') {
+      // Generate JWT token for admin
+      const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
+      const adminToken = jwt.sign(
+        { userId: 'admin', role: 'admin' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      
       return res.status(200).json({
         success: true,
         message: 'Admin login successful',
@@ -239,7 +247,8 @@ router.post('/login', async (req, res) => {
             email: 'admin',
             name: 'Administrator',
             role: 'admin'
-          }
+          },
+          token: adminToken
         }
       });
     }

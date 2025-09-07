@@ -17,6 +17,20 @@ const auth = async (req, res, next) => {
     const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-here';
     
     const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Handle admin user
+    if (decoded.userId === 'admin') {
+      req.user = {
+        id: 'admin',
+        _id: 'admin',
+        email: 'admin',
+        name: 'Administrator',
+        role: 'admin',
+        isActive: true
+      };
+      return next();
+    }
+    
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
