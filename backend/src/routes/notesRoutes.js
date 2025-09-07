@@ -1,22 +1,31 @@
-import express from "express"
+import express from "express";
+import {
+  getNotes,
+  createNote,
+  updateNote,
+  deleteNote
+} from '../controllers/notesController.js';
 
 const router = express.Router();
 
+// @desc    Get all notes
+// @route   GET /api/notes
+// @access  Private
+router.get("/", getNotes);
 
-router.get("/", (req,res) => {
-    res.status(200).send("Fetching the nodes");
-});
+// @desc    Create a new note
+// @route   POST /api/notes
+// @access  Private
+router.post("/", createNote);
 
-router.post("/", (req,res) => {
-    res.status(201).send({ message: "Creating a new note" });
-});
+// @desc    Update a note
+// @route   PUT /api/notes/:id
+// @access  Private
+router.put("/:id", updateNote);
 
-router.put("/:id", (req,res) => {
-    res.status(201).send({ message: "Updating a new note" });
-});
-
-router.delete("/:id", (req,res) => {
-    res.status(201).send({ message: "Deleting a new note" });
-});
+// @desc    Delete a note
+// @route   DELETE /api/notes/:id
+// @access  Private
+router.delete("/:id", deleteNote);
 
 export default router;
