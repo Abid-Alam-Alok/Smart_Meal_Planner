@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Homepage.css';
 
 const Homepage = () => {
@@ -9,7 +10,7 @@ const Homepage = () => {
           <h1 className="logo">Smart Meal Planner</h1>
           <nav className="nav">
             <button className="btn btn-secondary">Login</button>
-            <button className="btn btn-primary">Register</button>
+            <Link to="/register" className="btn btn-primary">Register</Link>
           </nav>
         </div>
       </header>
@@ -39,7 +40,7 @@ const Homepage = () => {
             </div>
             
             <div className="cta-buttons">
-              <button className="btn btn-primary btn-large">Get Started - Register Now</button>
+              <Link to="/register" className="btn btn-primary btn-large">Get Started - Register Now</Link>
               <button className="btn btn-secondary btn-large">Already have an account? Login</button>
             </div>
           </div>
