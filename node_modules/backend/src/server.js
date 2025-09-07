@@ -18,7 +18,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'], // Vite and React dev servers
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite and React dev servers
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -40,8 +40,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Connect to database and start server
+const PORT = process.env.PORT || 5001;
 connectDB().then(()=>{
-    app.listen(5001, () => {
-        console.log("Server started on port 5001");
+    app.listen(PORT, () => {
+        console.log(`Server started on port ${PORT}`);
     });
 });
+

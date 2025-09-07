@@ -1,21 +1,33 @@
 // API Configuration
-const API_CONFIG = {
-  BASE_URL: 'http://localhost:5001',
-  ENDPOINTS: {
-    USERS: {
-      REGISTER: '/api/users/register',
-      LOGIN: '/api/users/login',
-      PROFILE: '/api/users/profile',
-      STATS: '/api/users/stats'
-    },
-    HEALTH: '/api/health'
-  }
-};
+const API_BASE_URL = 'http://localhost:5001';
 
-// Helper function to build full API URLs
+/**
+ * Build API URL with the base URL
+ * @param {string} endpoint - The API endpoint
+ * @returns {string} - Complete API URL
+ */
 export const buildApiUrl = (endpoint) => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  // Remove leading slash if present to avoid double slashes
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  return `${API_BASE_URL}/${cleanEndpoint}`;
 };
 
-// Export the configuration
-export default API_CONFIG;
+/**
+ * API endpoints
+ */
+export const API_ENDPOINTS = {
+  // User authentication
+  USER_REGISTER: '/api/users/register',
+  USER_LOGIN: '/api/users/login',
+  USER_PROFILE: '/api/users/profile',
+  
+  // Admin endpoints
+  ADMIN_STATS: '/api/admin/stats',
+  ADMIN_USERS: '/api/admin/users'
+};
+
+export default {
+  buildApiUrl,
+  API_ENDPOINTS,
+  API_BASE_URL
+};

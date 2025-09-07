@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { buildApiUrl } from '../config/api.js';
+import { Link } from 'react-router-dom';
 import './UserRegister.css';
 
 const UserRegister = () => {
@@ -85,7 +85,8 @@ const UserRegister = () => {
     
     try {
       // Call backend API
-      const response = await fetch(buildApiUrl('/api/users/register'), {
+      const API_BASE_URL = 'http://localhost:5001';
+      const response = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -322,7 +323,7 @@ const UserRegister = () => {
             </button>
             
             <p className="login-link">
-              Already have an account? <a href="/login">Login here</a>
+              Already have an account? <Link to="/login">Login here</Link>
             </p>
           </div>
         </form>

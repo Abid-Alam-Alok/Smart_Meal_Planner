@@ -9,7 +9,7 @@ const Homepage = () => {
         <div className="container">
           <h1 className="logo">Smart Meal Planner</h1>
           <nav className="nav">
-            <button className="btn btn-secondary">Login</button>
+            <Link to="/login" className="btn btn-secondary">Login</Link>
             <Link to="/register" className="btn btn-primary">Register</Link>
           </nav>
         </div>
@@ -41,7 +41,7 @@ const Homepage = () => {
             
             <div className="cta-buttons">
               <Link to="/register" className="btn btn-primary btn-large">Get Started - Register Now</Link>
-              <button className="btn btn-secondary btn-large">Already have an account? Login</button>
+              <Link to="/login" className="btn btn-secondary btn-large">Already have an account? Login</Link>
             </div>
           </div>
         </div>
