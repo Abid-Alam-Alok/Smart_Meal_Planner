@@ -6,6 +6,7 @@ import UserLogin from './pages/UserLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import PersonalInventory from './pages/PersonalInventory';
+import MealPlanning from './pages/MealPlanning';
 import './App.css';
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/inventory" element={<PersonalInventory />} />
+          <Route path="/meal-planning" element={<MealPlanning />} />
         </Routes>
       </div>
     </Router>

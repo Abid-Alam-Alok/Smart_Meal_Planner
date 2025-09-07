@@ -26,7 +26,8 @@ const auth = async (req, res, next) => {
         email: 'admin',
         name: 'Administrator',
         role: 'admin',
-        isActive: true
+        isActive: true,
+        isAdmin: true
       };
       return next();
     }

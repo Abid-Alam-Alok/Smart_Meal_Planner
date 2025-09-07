@@ -181,7 +181,35 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// @desc    Get user profile
+// @desc    Get current user profile
+// @route   GET /api/users/profile
+// @access  Private
+router.get('/profile', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password -passwordResetToken -passwordResetExpires -emailVerificationToken');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Get current user profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
+
+// @desc    Get user profile by ID
 // @route   GET /api/users/profile/:id
 // @access  Private (for future implementation)
 router.get('/profile/:id', async (req, res) => {

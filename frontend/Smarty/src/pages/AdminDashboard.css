@@ -313,9 +313,245 @@
   }
 }
 
+/* Recipe Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.recipe-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.modal-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.request-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: #f9fafb;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.request-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.request-status {
+  background: #fbbf24;
+  color: #92400e;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.request-details {
+  margin-bottom: 1rem;
+}
+
+.request-details p {
+  margin: 0.25rem 0;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.request-ingredients,
+.request-instructions,
+.request-tags {
+  margin-bottom: 1rem;
+}
+
+.request-ingredients h4,
+.request-instructions h4,
+.request-tags h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.request-ingredients ul,
+.request-instructions ol {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #4b5563;
+}
+
+.request-ingredients li,
+.request-instructions li {
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.request-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.approve-button,
+.reject-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.approve-button {
+  background: #22c55e;
+  color: white;
+}
+
+.approve-button:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.reject-button {
+  background: #ef4444;
+  color: white;
+}
+
+.reject-button:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.approve-button:disabled,
+.reject-button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+  
+  .recipe-modal {
+    max-height: 95vh;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+  }
+  
+  .modal-content {
+    padding: 1rem;
+  }
+  
+  .request-item {
+    padding: 1rem;
+  }
+  
+  .request-actions {
+    flex-direction: column;
+  }
+  
+  .approve-button,
+  .reject-button {
+    width: 100%;
+  }
+}
+
 /* Accessibility improvements */
 .logout-button:focus-visible,
-.action-button:focus-visible {
+.action-button:focus-visible,
+.approve-button:focus-visible,
+.reject-button:focus-visible,
+.close-button:focus-visible {
   outline: 2px solid #22c55e;
   outline-offset: 2px;
 }
@@ -324,12 +560,16 @@
 @media (prefers-contrast: high) {
   .stat-card,
   .action-card,
-  .activity-list {
+  .activity-list,
+  .recipe-modal,
+  .request-item {
     border-width: 2px;
   }
   
   .logout-button,
-  .action-button {
+  .action-button,
+  .approve-button,
+  .reject-button {
     border: 2px solid #000;
   }
 }

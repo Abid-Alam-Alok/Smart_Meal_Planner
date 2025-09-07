@@ -503,8 +503,11 @@ const UserDashboard = () => {
                 <div className="feature-icon">🍽️</div>
                 <h3>Meal Planning</h3>
                 <p>Create personalized meal plans based on your goals and preferences</p>
-                <button className="feature-button" disabled>
-                  Coming Soon
+                <button 
+                  className="feature-button meal-planning-button" 
+                  onClick={() => navigate('/meal-planning')}
+                >
+                  Browse Recipes
                 </button>
               </div>
               

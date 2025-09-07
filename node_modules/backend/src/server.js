@@ -6,6 +6,7 @@ import cors from "cors";
 import notesRoutes from "./routes/notesRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import inventoryRoutes from "./routes/inventoryRoutes.js";
+import mealRoutes from "./routes/mealRoutes.js";
 import { connectDB } from "./config/database.js";
 import { ratelimit } from "./config/upstash.js";
 import rateLimiter from "./middlewares/rateLimiter.js";
@@ -31,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/notes", notesRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/meals", mealRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

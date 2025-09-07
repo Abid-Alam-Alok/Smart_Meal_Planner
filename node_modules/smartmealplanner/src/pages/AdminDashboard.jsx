@@ -7,6 +7,10 @@ const AdminDashboard = () => {
   const [userStats, setUserStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [recipeRequests, setRecipeRequests] = useState([]);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +29,7 @@ const AdminDashboard = () => {
 
     setUser(parsedUser);
     fetchUserStats();
+    fetchRecipeRequests();
   }, [navigate]);
 
   const fetchUserStats = async () => {
@@ -39,6 +44,64 @@ const AdminDashboard = () => {
       console.error('Error fetching user stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRecipeRequests = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(buildApiUrl('/api/meals/admin/requests?status=pending'), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      
+      console.log('Recipe requests response:', data);
+      
+      if (data.success) {
+        setRecipeRequests(data.data || []);
+      } else {
+        console.error('Failed to fetch recipe requests:', data.message);
+        setRecipeRequests([]);
+      }
+    } catch (error) {
+      console.error('Error fetching recipe requests:', error);
+      setRecipeRequests([]);
+    }
+  };
+
+  const handleRecipeAction = async (requestId, action, notes = '') => {
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = action === 'approve' ? `/api/meals/admin/approve/${requestId}` : `/api/meals/admin/reject/${requestId}`;
+      const body = action === 'approve' ? { adminNotes: notes } : { rejectionReason: notes, adminNotes: notes };
+      
+      const response = await fetch(buildApiUrl(endpoint), {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert(`Recipe ${action}d successfully!`);
+        setShowRecipeModal(false);
+        setSelectedRequest(null);
+        fetchRecipeRequests(); // Refresh the list
+      } else {
+        alert(`Error ${action}ing recipe: ${data.message}`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing recipe:`, error);
+      alert(`Error ${action}ing recipe. Please try again.`);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -122,10 +185,14 @@ const AdminDashboard = () => {
               </div>
               
               <div className="action-card">
-                <h3>Meal Plans</h3>
-                <p>Manage meal plans and recipes</p>
-                <button className="action-button" disabled>
-                  Coming Soon
+                <h3>Recipe Requests</h3>
+                <p>Review and approve user recipe submissions</p>
+                <button 
+                  className="action-button" 
+                  onClick={() => setShowRecipeModal(true)}
+                  disabled={recipeRequests.length === 0}
+                >
+                  {recipeRequests.length > 0 ? `Review ${recipeRequests.length} Requests` : 'No Pending Requests'}
                 </button>
               </div>
               
@@ -177,6 +244,113 @@ const AdminDashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Recipe Requests Modal */}
+      {showRecipeModal && (
+        <div className="modal-overlay" onClick={() => setShowRecipeModal(false)}>
+          <div className="recipe-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Recipe Requests ({recipeRequests.length})</h2>
+              <button 
+                className="close-button"
+                onClick={() => setShowRecipeModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-content">
+              {recipeRequests.length === 0 ? (
+                <p>No pending recipe requests.</p>
+              ) : (
+                <div className="requests-list">
+                  {recipeRequests.map((request) => {
+                    // Safety check for request object
+                    if (!request || !request._id) {
+                      console.warn('Invalid request object:', request);
+                      return null;
+                    }
+                    
+                    return (
+                      <div key={request._id} className="request-item">
+                        <div className="request-header">
+                          <h3>{request.name || 'Unnamed Recipe'}</h3>
+                          <span className="request-status">{request.status || 'pending'}</span>
+                        </div>
+                        
+                        <div className="request-details">
+                          <p><strong>Submitted by:</strong> {request.requestedBy?.name || 'Unknown'}</p>
+                          <p><strong>Calories:</strong> {request.calories || 'N/A'}</p>
+                          <p><strong>Difficulty:</strong> {request.difficulty || 'N/A'}</p>
+                          <p><strong>Diet Type:</strong> {request.dietType || 'Normal'}</p>
+                          <p><strong>Servings:</strong> {request.servings || 'N/A'}</p>
+                          {request.description && (
+                            <p><strong>Description:</strong> {request.description}</p>
+                          )}
+                        </div>
+                        
+                        <div className="request-ingredients">
+                          <h4>Ingredients:</h4>
+                          <ul>
+                            {(request.ingredients || []).map((ingredient, index) => (
+                              <li key={index}>{typeof ingredient === 'string' ? ingredient : ingredient.name || 'Unknown ingredient'}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        <div className="request-instructions">
+                          <h4>Instructions:</h4>
+                          <ol>
+                            {(request.instructions || []).map((instruction, index) => (
+                              <li key={index}>{typeof instruction === 'string' ? instruction : instruction.description || 'Unknown instruction'}</li>
+                            ))}
+                          </ol>
+                        </div>
+                        
+                        {request.tags && request.tags.length > 0 && (
+                          <div className="request-tags">
+                            <h4>Tags:</h4>
+                            <div className="tags">
+                              {request.tags.map((tag, index) => (
+                                <span key={index} className="tag">{tag}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="request-actions">
+                          <button 
+                            className="approve-button"
+                            onClick={() => {
+                              const notes = prompt('Add admin notes (optional):');
+                              handleRecipeAction(request._id, 'approve', notes || '');
+                            }}
+                            disabled={actionLoading}
+                          >
+                            {actionLoading ? 'Processing...' : 'Approve'}
+                          </button>
+                          <button 
+                            className="reject-button"
+                            onClick={() => {
+                              const reason = prompt('Rejection reason (required):');
+                              if (reason) {
+                                handleRecipeAction(request._id, 'reject', reason);
+                              }
+                            }}
+                            disabled={actionLoading}
+                          >
+                            {actionLoading ? 'Processing...' : 'Reject'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
