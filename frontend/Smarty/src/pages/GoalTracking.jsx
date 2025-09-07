@@ -97,9 +97,13 @@ const GoalTracking = () => {
       const startDate = new Date(selectedYear, selectedMonth - 1, 1);
       const endDate = new Date(selectedYear, selectedMonth, 0); // Last day of the month
       
+      // Ensure we include the last day of the month properly
+      endDate.setHours(23, 59, 59, 999);
+      
       // Format dates for API
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
+      
       
       // Fetch data for the specific month using date range
       const response = await fetch(buildApiUrl(`/api/intake/history?startDate=${startDateStr}&endDate=${endDateStr}&limit=100`), {
@@ -386,11 +390,21 @@ const GoalTracking = () => {
                       
                       // Find intake data for this day
                       const intakeData = monthlyData.find(intake => {
-                        // Create date string for comparison using the actual day's date components
-                        const calendarDateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-                        const intakeDateStr = intake.date.split('T')[0]; // Get just the date part
+                        // Create calendar date in local timezone
+                        const calendarDate = new Date(day.getFullYear(), day.getMonth(), day.getDate());
                         
-                        return intakeDateStr === calendarDateStr;
+                        // Create intake date from the stored date string
+                        const intakeDate = new Date(intake.date);
+                        
+                        // Compare dates by creating date strings in the same timezone
+                        const calendarDateStr = calendarDate.toISOString().split('T')[0];
+                        const intakeDateStr = intakeDate.toISOString().split('T')[0];
+                        
+                        // Also try comparing with local date components as fallback
+                        const calendarLocalStr = `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(calendarDate.getDate()).padStart(2, '0')}`;
+                        const intakeLocalStr = `${intakeDate.getFullYear()}-${String(intakeDate.getMonth() + 1).padStart(2, '0')}-${String(intakeDate.getDate()).padStart(2, '0')}`;
+                        
+                        return calendarDateStr === intakeDateStr || calendarLocalStr === intakeLocalStr;
                       });
                       
                       let dayClass = 'calendar-day';

@@ -72,6 +72,12 @@ intakeMealSchema.pre('save', function(next) {
   next();
 });
 
+// Virtual field for goal percentage
+intakeMealSchema.virtual('goalPercentage').get(function() {
+  if (this.dailyCalorieGoal === 0) return 0;
+  return Math.round((this.totalCalories / this.dailyCalorieGoal) * 100);
+});
+
 // Index for efficient queries
 intakeMealSchema.index({ userId: 1, date: 1 }, { unique: true });
 
@@ -114,7 +120,18 @@ intakeMealSchema.statics.getIntakeByDate = async function(userId, date) {
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0);
   
-  return await this.findOne({ userId, date: targetDate });
+  // Also check for the next day to handle timezone edge cases
+  const nextDay = new Date(targetDate);
+  nextDay.setDate(nextDay.getDate() + 1);
+  nextDay.setHours(0, 0, 0, 0);
+  
+  return await this.findOne({ 
+    userId, 
+    date: { 
+      $gte: targetDate, 
+      $lt: nextDay 
+    } 
+  });
 };
 
 // Instance method to add a meal

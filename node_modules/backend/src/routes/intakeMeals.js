@@ -41,13 +41,34 @@ router.get('/history', auth, async (req, res) => {
     
     if (startDate || endDate) {
       query.date = {};
-      if (startDate) query.date.$gte = new Date(startDate);
-      if (endDate) query.date.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query.date.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    } else {
+      // If no date range specified, get last 30 days
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      startDate.setHours(0, 0, 0, 0);
+      
+      query.date = {
+        $gte: startDate,
+        $lte: endDate
+      };
     }
     
     const intakes = await IntakeMeal.find(query)
       .sort({ date: -1 })
       .limit(parseInt(limit));
+    
     
     res.json(intakes);
   } catch (error) {
