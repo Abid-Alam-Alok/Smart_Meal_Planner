@@ -23,7 +23,7 @@
 }
 
 .history-subtitle {
-  color: #6b7280;
+  color: #16a34a;
   font-size: 1.1rem;
 }
 
@@ -52,7 +52,7 @@
 .search-input {
   width: 100%;
   padding: 0.75rem 0.75rem 0.75rem 2.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #bbf7d0;
   border-radius: 0.5rem;
   font-size: 1rem;
   background-color: white;
@@ -103,7 +103,7 @@
 .spinner {
   width: 2rem;
   height: 2rem;
-  border: 3px solid #e5e7eb;
+  border: 3px solid #bbf7d0;
   border-top: 3px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -169,7 +169,7 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  background-color: #f3f4f6;
+  background-color: #dcfce7;
   border-radius: 0.5rem;
   flex-shrink: 0;
   font-size: 1.25rem;
@@ -231,7 +231,7 @@
 
 .action-default {
   background-color: #f3f4f6;
-  color: #374151;
+  color: #22c55e;
 }
 
 .item-info {
@@ -278,7 +278,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #9ca3af;
+  color: #86efac;
   font-size: 0.875rem;
 }
 
@@ -301,8 +301,8 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: #f0fdf4;
+  border-color: #86efac;
 }
 
 .pagination-btn:disabled {

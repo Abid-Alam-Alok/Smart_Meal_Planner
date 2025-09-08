@@ -180,6 +180,13 @@ const ProfileEdit = ({ user, onClose, onUpdate }) => {
           </button>
         </div>
         
+        <div className="welcome-message">
+          <div className="welcome-content">
+            <h3>👋 Welcome to Your Profile Settings!</h3>
+            <p>Update your information below to personalize your NutriVault experience and get better recommendations tailored just for you.</p>
+          </div>
+        </div>
+        
         <form onSubmit={handleSubmit} className="profile-edit-form">
           <div className="form-grid">
             {/* Personal Information */}
@@ -315,6 +322,33 @@ const ProfileEdit = ({ user, onClose, onUpdate }) => {
                   <option value="very-active">Very Active (hard exercise 6-7 days/week)</option>
                 </select>
                 {errors.activityLevel && <span className="error-message">{errors.activityLevel}</span>}
+              </div>
+            </div>
+            
+            {/* Motivational Quotes */}
+            <div className="quotes-section">
+              <h3>💪 Stay Motivated!</h3>
+              <div className="quotes-container">
+                <div className="quote-card">
+                  <p>"Your body can do it. It's your mind you need to convince."</p>
+                  <span className="quote-author">- Anonymous</span>
+                </div>
+                <div className="quote-card">
+                  <p>"Health is not about the weight you lose, but about the life you gain."</p>
+                  <span className="quote-author">- Dr. Josh Axe</span>
+                </div>
+                <div className="quote-card">
+                  <p>"Take care of your body. It's the only place you have to live."</p>
+                  <span className="quote-author">- Jim Rohn</span>
+                </div>
+                <div className="quote-card">
+                  <p>"A healthy outside starts from the inside."</p>
+                  <span className="quote-author">- Robert Urich</span>
+                </div>
+                <div className="quote-card">
+                  <p>"Progress, not perfection."</p>
+                  <span className="quote-author">- Anonymous</span>
+                </div>
               </div>
             </div>
           </div>

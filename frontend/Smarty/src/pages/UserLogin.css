@@ -50,7 +50,7 @@
 .form-group label {
   display: block;
   font-weight: 500;
-  color: #374151;
+  color: #22c55e;
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
 }
@@ -58,7 +58,7 @@
 .form-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #bbf7d0;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
@@ -78,7 +78,7 @@
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: #86efac;
 }
 
 .error-message {
@@ -126,7 +126,7 @@
 
 .register-link {
   margin-top: 1.5rem;
-  color: #6b7280;
+  color: #16a34a;
   font-size: 0.95rem;
 }
 
@@ -142,47 +142,7 @@
   text-decoration: underline;
 }
 
-.demo-credentials {
-  background: #f9fafb;
-  padding: 2rem;
-  border-top: 1px solid #e5e7eb;
-}
 
-.demo-credentials h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 1rem 0;
-  text-align: center;
-}
-
-.credentials-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-.credential-item {
-  background: white;
-  padding: 1.25rem;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.credential-item strong {
-  display: block;
-  color: #22c55e;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.credential-item p {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  font-family: 'Courier New', monospace;
-}
 
 /* Loading state */
 .login-button:disabled {
@@ -241,14 +201,7 @@
     flex: 1;
   }
   
-  .demo-credentials {
-    padding: 1.5rem;
-  }
-  
-  .credentials-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+
 }
 
 @media (max-width: 480px) {
@@ -268,9 +221,7 @@
     padding: 1.5rem 1rem;
   }
   
-  .demo-credentials {
-    padding: 1rem;
-  }
+
   
   .form-input {
     padding: 0.75rem;

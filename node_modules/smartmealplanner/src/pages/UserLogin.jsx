@@ -97,7 +97,7 @@ const UserLogin = () => {
       <div className="login-container">
         <div className="login-header">
           <h1>Welcome Back</h1>
-          <p>Sign in to your Smart Meal Planner account</p>
+          <p>Sign in to your NutriVault account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -146,20 +146,7 @@ const UserLogin = () => {
           </div>
         </form>
 
-        <div className="demo-credentials">
-          <h3>Demo Credentials</h3>
-          <div className="credentials-grid">
-            <div className="credential-item">
-              <strong>Admin Access:</strong>
-              <p>Email: admin</p>
-              <p>Password: admin1234</p>
-            </div>
-            <div className="credential-item">
-              <strong>User Access:</strong>
-              <p>Use any registered user email and password</p>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );

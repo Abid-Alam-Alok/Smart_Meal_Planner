@@ -19,7 +19,7 @@
 
 .dashboard-header {
   background: white;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #bbf7d0;
   padding: 1.5rem 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -41,7 +41,7 @@
 }
 
 .header-left p {
-  color: #6b7280;
+  color: #16a34a;
   margin: 0;
   font-size: 1rem;
 }
@@ -100,7 +100,7 @@
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  border: 1px solid #bbf7d0;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -242,7 +242,7 @@
 }
 
 .action-button:disabled {
-  background: #9ca3af;
+  background: #86efac;
   cursor: not-allowed;
   transform: none;
 }
@@ -399,7 +399,7 @@
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  background: #f0fdf4;
 }
 
 .modal-header h2 {
@@ -421,7 +421,7 @@
 }
 
 .close-button:hover {
-  background: #e5e7eb;
+  background: #bbf7d0;
   color: #1f2937;
 }
 
@@ -526,7 +526,7 @@
   gap: 1rem;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #bbf7d0;
 }
 
 .approve-button,

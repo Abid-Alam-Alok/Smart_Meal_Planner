@@ -50,7 +50,7 @@
   color: #1f2937;
   margin: 0 0 1.5rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid #bbf7d0;
 }
 
 .form-group {
@@ -66,7 +66,7 @@
 .form-group label {
   display: block;
   font-weight: 500;
-  color: #374151;
+  color: #22c55e;
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
 }
@@ -75,7 +75,7 @@
 .form-select {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #bbf7d0;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
@@ -97,7 +97,7 @@
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: #86efac;
 }
 
 .form-select {
@@ -154,7 +154,7 @@
 
 .login-link {
   margin-top: 1.5rem;
-  color: #6b7280;
+  color: #16a34a;
   font-size: 0.95rem;
 }
 

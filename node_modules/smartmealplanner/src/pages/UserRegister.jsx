@@ -97,7 +97,7 @@ const UserRegister = () => {
       const data = await response.json();
       
       if (data.success) {
-        alert('Registration successful! Welcome to Smart Meal Planner!');
+        alert('Registration successful! Welcome to NutriVault!');
         
         // Reset form
         setFormData({
@@ -137,7 +137,7 @@ const UserRegister = () => {
     <div className="user-register">
       <div className="register-container">
         <div className="register-header">
-          <h1>Join Smart Meal Planner</h1>
+          <h1>Join NutriVault</h1>
           <p>Create your personalized nutrition and fitness journey</p>
         </div>
 

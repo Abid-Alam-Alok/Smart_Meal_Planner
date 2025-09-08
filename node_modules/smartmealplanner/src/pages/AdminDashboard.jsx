@@ -304,7 +304,7 @@ const AdminDashboard = () => {
               <div className="activity-item">
                 <div className="activity-icon">🎯</div>
                 <div className="activity-content">
-                  <p><strong>Platform:</strong> Smart Meal Planner Admin Panel</p>
+                  <p><strong>Platform:</strong> NutriVault Admin Panel</p>
                   <span className="activity-time">Active</span>
                 </div>
               </div>

@@ -186,7 +186,7 @@ const MealPlanning = () => {
       case 'easy': return '#22c55e';
       case 'medium': return '#f59e0b';
       case 'hard': return '#ef4444';
-      default: return '#6b7280';
+      default: return '#16a34a';
     }
   };
 

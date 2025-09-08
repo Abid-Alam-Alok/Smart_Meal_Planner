@@ -8,7 +8,7 @@
 /* Header Styles */
 .inventory-header {
   background: white;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #bbf7d0;
   padding: 2rem 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -36,14 +36,14 @@
 }
 
 .header-left p {
-  color: #6b7280;
+  color: #16a34a;
   margin: 0;
   font-size: 1rem;
 }
 
 .back-button {
-  background: #f3f4f6;
-  color: #374151;
+  background: #dcfce7;
+  color: #22c55e;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -58,7 +58,7 @@
 }
 
 .back-button:hover {
-  background: #e5e7eb;
+  background: #bbf7d0;
   transform: translateY(-1px);
 }
 
@@ -103,7 +103,7 @@
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e5e7eb;
+  border: 4px solid #bbf7d0;
   border-top: 4px solid #22c55e;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -173,7 +173,7 @@
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #bbf7d0;
 }
 
 .form-header h2 {
@@ -184,7 +184,7 @@
 }
 
 .close-form-btn {
-  background: #f3f4f6;
+  background: #dcfce7;
   border: none;
   width: 32px;
   height: 32px;
@@ -194,13 +194,13 @@
   justify-content: center;
   cursor: pointer;
   font-size: 1.25rem;
-  color: #6b7280;
+  color: #16a34a;
   transition: all 0.2s ease;
 }
 
 .close-form-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: #bbf7d0;
+  color: #22c55e;
 }
 
 /* Form Grid */
@@ -231,7 +231,7 @@
 .form-group select,
 .form-group textarea {
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #bbf7d0;
   border-radius: 8px;
   font-size: 0.875rem;
   transition: all 0.2s ease;
@@ -350,7 +350,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  border: 1px solid #bbf7d0;
   transition: all 0.2s ease;
   position: relative;
 }

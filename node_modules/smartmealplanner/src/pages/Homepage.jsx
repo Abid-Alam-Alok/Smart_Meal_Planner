@@ -7,7 +7,7 @@ const Homepage = () => {
     <div className="homepage">
       <header className="header">
         <div className="container">
-          <h1 className="logo">Smart Meal Planner</h1>
+          <h1 className="logo">NutriVault</h1>
           <nav className="nav">
             <Link to="/login" className="btn btn-secondary">Login</Link>
             <Link to="/register" className="btn btn-primary">Register</Link>
@@ -20,7 +20,7 @@ const Homepage = () => {
           <div className="hero-content">
             <h2 className="hero-title">Plan Your Meals, Simplify Your Life</h2>
             <p className="hero-description">
-              Smart Meal Planner helps you organize your nutrition, manage your inventory, 
+              NutriVault helps you organize your nutrition, manage your inventory, 
               and create personalized meal plans that fit your lifestyle.
             </p>
             

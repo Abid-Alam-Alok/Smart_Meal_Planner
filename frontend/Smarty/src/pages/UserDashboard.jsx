@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileEdit from '../components/ProfileEdit';
 import GoalSelection from '../components/GoalSelection';
+import MotivationalQuotes from '../components/MotivationalQuotes';
 import { buildApiUrl } from '../config/api';
 import './UserDashboard.css';
 
@@ -386,63 +387,66 @@ const UserDashboard = () => {
         <div className="dashboard-container">
           <div className="user-info-section">
             <h2>Your Profile</h2>
-            <div className="profile-card">
-              <div className="profile-avatar">
-                <span>{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</span>
-              </div>
-              <div className="profile-details">
-                <div className="profile-header">
-                  <div>
-                    <h3>{user?.name || 'User'}</h3>
-                    <p className="profile-email">{user?.email}</p>
+            <div className="profile-and-quotes-container">
+              <div className="profile-card">
+                <div className="profile-avatar">
+                  <span>{(user?.name || user?.email || 'U').charAt(0).toUpperCase()}</span>
+                </div>
+                <div className="profile-details">
+                  <div className="profile-header">
+                    <div>
+                      <h3>{user?.name || 'User'}</h3>
+                      <p className="profile-email">{user?.email}</p>
+                    </div>
+                    <button 
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setShowProfileEdit(true)}
+                      title="Edit Profile"
+                    >
+                      ✏️ Edit
+                    </button>
                   </div>
-                  <button 
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setShowProfileEdit(true)}
-                    title="Edit Profile"
-                  >
-                    ✏️ Edit
-                  </button>
-                </div>
-                <div className="profile-stats">
-                  {user?.age && (
-                    <div className="stat-item">
-                      <span className="stat-label">Age:</span>
-                      <span className="stat-value">{user.age} years</span>
-                    </div>
-                  )}
-                  {user?.height && (
-                    <div className="stat-item">
-                      <span className="stat-label">Height:</span>
-                      <span className="stat-value">{user.height} cm</span>
-                    </div>
-                  )}
-                  {user?.weight && (
-                    <div className="stat-item">
-                      <span className="stat-label">Weight:</span>
-                      <span className="stat-value">{user.weight} kg</span>
-                    </div>
-                  )}
-                  {user?.bmi && (
-                    <div className="stat-item">
-                      <span className="stat-label">BMI:</span>
-                      <span className="stat-value">{user.bmi}</span>
-                    </div>
-                  )}
-                  {user?.primaryGoal && (
-                    <div className="stat-item">
-                      <span className="stat-label">Goal:</span>
-                      <span className="stat-value">{user.primaryGoal.replace('-', ' ')}</span>
-                    </div>
-                  )}
-                  {user?.activityLevel && (
-                    <div className="stat-item">
-                      <span className="stat-label">Activity:</span>
-                      <span className="stat-value">{user.activityLevel.replace('-', ' ')}</span>
-                    </div>
-                  )}
+                  <div className="profile-stats">
+                    {user?.age && (
+                      <div className="stat-item">
+                        <span className="stat-label">Age:</span>
+                        <span className="stat-value">{user.age} years</span>
+                      </div>
+                    )}
+                    {user?.height && (
+                      <div className="stat-item">
+                        <span className="stat-label">Height:</span>
+                        <span className="stat-value">{user.height} cm</span>
+                      </div>
+                    )}
+                    {user?.weight && (
+                      <div className="stat-item">
+                        <span className="stat-label">Weight:</span>
+                        <span className="stat-value">{user.weight} kg</span>
+                      </div>
+                    )}
+                    {user?.bmi && (
+                      <div className="stat-item">
+                        <span className="stat-label">BMI:</span>
+                        <span className="stat-value">{user.bmi}</span>
+                      </div>
+                    )}
+                    {user?.primaryGoal && (
+                      <div className="stat-item">
+                        <span className="stat-label">Goal:</span>
+                        <span className="stat-value">{user.primaryGoal.replace('-', ' ')}</span>
+                      </div>
+                    )}
+                    {user?.activityLevel && (
+                      <div className="stat-item">
+                        <span className="stat-label">Activity:</span>
+                        <span className="stat-value">{user.activityLevel.replace('-', ' ')}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+              <MotivationalQuotes />
             </div>
           </div>
 
@@ -568,7 +572,7 @@ const UserDashboard = () => {
           )}
 
           <div className="features-section">
-            <h2>Your Smart Meal Planner</h2>
+            <h2>Your NutriVault</h2>
             <div className="features-grid">
               <div className="feature-card">
                 <div className="feature-icon">🍽️</div>
@@ -622,47 +626,11 @@ const UserDashboard = () => {
             </div>
           </div>
 
-          <div className="quick-actions">
-            <h2>Quick Actions</h2>
-            <div className="actions-list">
-              <div className="action-item">
-                <div className="action-icon">👤</div>
-                <div className="action-content">
-                  <h4>Update Profile</h4>
-                  <p>Modify your personal information and preferences</p>
-                </div>
-                <button className="btn btn-info btn-sm" disabled>
-                  Edit
-                </button>
-              </div>
-              
-              <div className="action-item">
-                <div className="action-icon">⚙️</div>
-                <div className="action-content">
-                  <h4>Settings</h4>
-                  <p>Customize your app experience and notifications</p>
-                </div>
-                <button className="btn btn-warning btn-sm" disabled>
-                  Configure
-                </button>
-              </div>
-              
-              <div className="action-item">
-                <div className="action-icon">📱</div>
-                <div className="action-content">
-                  <h4>Mobile App</h4>
-                  <p>Download our mobile app for on-the-go access</p>
-                </div>
-                <button className="btn btn-success btn-sm" disabled>
-                  Download
-                </button>
-              </div>
-            </div>
-          </div>
+
 
           <div className="welcome-message">
             <div className="welcome-card">
-              <h3>🎉 Welcome to Smart Meal Planner!</h3>
+              <h3>🎉 Welcome to NutriVault!</h3>
               <p>
                 Thank you for joining our community! Your personalized nutrition journey starts here. 
                 We're working hard to bring you amazing features that will help you achieve your health and fitness goals.
